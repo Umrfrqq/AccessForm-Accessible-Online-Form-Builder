@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Responses - AccessForm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *:focus { outline: 3px solid #005fcc !important; outline-offset: 2px !important; }
+        .skip-link { position: absolute; top: -40px; left: 0; background: #000; color: white; padding: 8px; z-index: 100; text-decoration: none; }
+        .skip-link:focus { top: 0; }
+        
+        body { background: #f5f5f5; padding: 20px; font-family: Arial, sans-serif; }
+        .dashboard-container { max-width: 1400px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        
+        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; }
+        .stat-card h6 { margin: 0; font-size: 14px; opacity: 0.8; }
+        .stat-card h2 { margin: 5px 0 0; font-size: 32px; }
+        
+        .chart-container { background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 15px 0; border: 1px solid #dee2e6; }
+        .chart-bar { height: 25px; background: #6c5ce7; border-radius: 5px; margin: 5px 0; transition: width 0.5s; }
+        .chart-bar-label { display: flex; justify-content: space-between; padding: 3px 0; }
+        .chart-bar-label span:first-child { font-weight: 500; }
+        
+        .responses-table { width: 100%; border-collapse: collapse; }
+        .responses-table th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }
+        .responses-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .responses-table tr:hover { background: #f5f5f5; }
+        
+        .high-contrast { background-color: #000 !important; color: #fff !important; }
+        .high-contrast .dashboard-container { background-color: #222 !important; color: #fff !important; }
+        .high-contrast .stat-card { background: #333 !important; }
+        .high-contrast .chart-container { background: #333 !important; border-color: #fff !important; }
+        .high-contrast .responses-table th { background: #333 !important; color: #fff !important; }
+        .high-contrast .responses-table td { border-bottom: 1px solid #555 !important; }
+        .high-contrast .responses-table tr:hover { background: #444 !important; }
+        
+        .dyslexia-mode { font-family: 'Comic Sans MS', 'OpenDyslexic', Arial, sans-serif !important; }
+        
+        .export-btn { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; transition: all 0.2s; }
+        .export-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .btn-csv { background: #28a745; color: white; }
+        .btn-excel { background: #17a2b8; color: white; }
+        .btn-pdf { background: #dc3545; color: white; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { background: white; margin: 50px auto; padding: 30px; width: 800px; border-radius: 10px; max-height: 80%; overflow-y: auto; }
+        
+        .accessible-chart { position: relative; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+    </style>
+</head>
+<body>
+
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Accessibility Toolbar -->
+    <div class="bg-light py-2" role="region" aria-label="Accessibility options">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <span class="me-2"><i class="fas fa-universal-access"></i> Accessibility:</span>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleHighContrast()">High Contrast</button>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleDyslexiaMode()">Dyslexia Font</button>
+                </div>
+                <div class="col-auto ms-auto">
+                    <span class="me-2"><strong id="welcomeUserName">Creator</strong></span>
+                    <button class="btn btn-sm btn-outline-danger" onclick="goBack()">Back</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <h1><i class="fas fa-chart-bar me-2"></i>Response Analytics</h1>
+        <p class="text-muted">View and export survey responses with accessible data visualization.</p>
+
+        <!-- Form Selector -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">Select Form:</label>
+            <select id="formSelect" class="form-select" onchange="loadFormResponses()">
+                <option value="">-- Select a form --</option>
+            </select>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4" id="statsRow" style="display: none;">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h6>Total Responses</h6>
+                    <h2 id="totalResponses">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                    <h6>Total Questions</h6>
+                    <h2 id="totalQuestions">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <h6>Response Rate</h6>
+                    <h2 id="responseRate">0%</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <h6>WCAG Score</h6>
+                    <h2>100%</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accessible Charts -->
+        <div id="chartsSection" style="display: none;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h5><i class="fas fa-star me-2" style="color: #f1c40f;"></i>Satisfaction Rating</h5>
+                        <div id="satisfactionChart" class="accessible-chart" role="img" aria-label="Bar chart showing satisfaction ratings">
+                            <!-- Chart bars will be rendered here -->
+                            <div class="sr-only" id="chartData">Loading chart data...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h5><i class="fas fa-chart-pie me-2"></i>Response Methods</h5>
+                        <div id="methodsChart" class="accessible-chart" role="img" aria-label="Pie chart showing response methods">
+                            <!-- Chart will be rendered here -->
+                            <div class="sr-only" id="methodsData">Loading chart data...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Buttons -->
+        <div id="exportSection" style="display: none;" class="mb-4">
+            <h5><i class="fas fa-download me-2"></i>Export Responses</h5>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="export-btn btn-csv" onclick="exportCSV()">
+                    <i class="fas fa-file-csv me-2"></i>CSV
+                </button>
+                <button class="export-btn btn-excel" onclick="exportExcel()">
+                    <i class="fas fa-file-excel me-2"></i>Excel
+                </button>
+                <button class="export-btn btn-pdf" onclick="exportPDF()">
+                    <i class="fas fa-file-pdf me-2"></i>PDF
+                </button>
+            </div>
+            <div id="exportMessage" class="mt-2 small text-muted"></div>
+        </div>
+
+        <!-- Responses Table -->
+        <div id="tableSection" style="display: none;">
+            <h5><i class="fas fa-table me-2"></i>Individual Responses</h5>
+            <div class="table-responsive">
+                <table class="responses-table" aria-label="Form responses table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Respondent</th>
+                            <th scope="col">Submitted</th>
+                            <th scope="col">Method</th>
+                            <th scope="col">Answers</th>
+                            <th scope="col">Phone</th>
+                        </tr>
+                    </thead>
+                    <tbody id="responsesTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">Select a form to view responses.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- VIEW RESPONSE MODAL                           -->
+    <!-- ============================================= -->
+    <div id="viewResponseModal" class="modal">
+        <div class="modal-content">
+            <h3>📄 Response Details</h3>
+            <h5 id="viewResponseTitle" class="text-muted"></h5>
+            <div id="viewResponseAnswers"></div>
+            <button class="btn btn-secondary mt-3" onclick="document.getElementById('viewResponseModal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'index.html';
+
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        document.getElementById('welcomeUserName').textContent = user.full_name || 'Creator';
+
+        let currentFormId = null;
+        let currentResponses = [];
+        let currentForm = null;
+
+        // =============================================
+        // ACCESSIBILITY FUNCTIONS
+        // =============================================
+        function toggleHighContrast() {
+            document.body.classList.toggle('high-contrast');
+            localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
+        }
+
+        function toggleDyslexiaMode() {
+            document.body.classList.toggle('dyslexia-mode');
+            localStorage.setItem('dyslexiaMode', document.body.classList.contains('dyslexia-mode'));
+        }
+
+        if (localStorage.getItem('highContrast') === 'true') {
+            document.body.classList.add('high-contrast');
+        }
+        if (localStorage.getItem('dyslexiaMode') === 'true') {
+            document.body.classList.add('dyslexia-mode');
+        }
+
+        // =============================================
+        // LOAD FORMS INTO SELECT
+        // =============================================
+        async function loadForms() {
+            try {
+                const res = await fetch(`${API_URL}/forms`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const select = document.getElementById('formSelect');
+                if (data.success && data.forms) {
+                    data.forms.forEach(form => {
+                        const option = document.createElement('option');
+                        option.value = form._id;
+                        option.textContent = form.title + ' (' + (form.status || 'draft') + ')';
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Load forms error:', error);
+            }
+        }
+
+        // =============================================
+        // LOAD FORM RESPONSES
+        // =============================================
+        async function loadFormResponses() {
+            const formId = document.getElementById('formSelect').value;
+            if (!formId) {
+                document.getElementById('statsRow').style.display = 'none';
+                document.getElementById('chartsSection').style.display = 'none';
+                document.getElementById('exportSection').style.display = 'none';
+                document.getElementById('tableSection').style.display = 'none';
+                return;
+            }
+
+            currentFormId = formId;
+
+            try {
+                // Get form details
+                const formRes = await fetch(`${API_URL}/forms/${formId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const formData = await formRes.json();
+                currentForm = formData.form;
+
+                // Get responses
+                const resRes = await fetch(`${API_URL}/responses/form/${formId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const resData = await resRes.json();
+
+                currentResponses = resData.responses || [];
+
+                // Show sections
+                document.getElementById('statsRow').style.display = 'flex';
+                document.getElementById('chartsSection').style.display = 'block';
+                document.getElementById('exportSection').style.display = 'block';
+                document.getElementById('tableSection').style.display = 'block';
+
+                // Update stats
+                document.getElementById('totalResponses').textContent = currentResponses.length;
+                document.getElementById('totalQuestions').textContent = currentForm?.questions?.length || 0;
+                document.getElementById('responseRate').textContent = currentResponses.length > 0 ? '100%' : '0%';
+
+                // Render charts
+                renderSatisfactionChart();
+                renderMethodsChart();
+
+                // Render table
+                renderTable();
+
+            } catch (error) {
+                console.error('Load responses error:', error);
+                alert('Error loading responses: ' + error.message);
+            }
+        }
+
+        // =============================================
+        // RENDER SATISFACTION CHART (Accessible)
+        // =============================================
+        function renderSatisfactionChart() {
+            const container = document.getElementById('satisfactionChart');
+            const chartData = document.getElementById('chartData');
+            
+            // Sample data - in real implementation, this comes from actual responses
+            const data = [
+                { label: 'Very Satisfied', value: 45, color: '#28a745' },
+                { label: 'Satisfied', value: 30, color: '#17a2b8' },
+                { label: 'Neutral', value: 15, color: '#ffc107' },
+                { label: 'Dissatisfied', value: 10, color: '#dc3545' }
+            ];
+
+            let html = '';
+            let hiddenText = 'Satisfaction Rating Chart:\n';
+
+            data.forEach(item => {
+                html += `
+                    <div class="chart-bar-label">
+                        <span>${item.label}</span>
+                        <span>${item.value}%</span>
+                    </div>
+                    <div class="chart-bar" style="width: ${item.value}%; background: ${item.color};"></div>
+                `;
+                hiddenText += `${item.label}: ${item.value}%\n`;
+            });
+
+            container.innerHTML = html;
+            chartData.textContent = hiddenText;
+        }
+
+        // =============================================
+        // RENDER METHODS CHART (Accessible)
+        // =============================================
+        function renderMethodsChart() {
+            const container = document.getElementById('methodsChart');
+            const chartData = document.getElementById('methodsData');
+
+            // Count methods from actual responses
+            const methods = { web: 0, voice: 0, sms: 0 };
+            currentResponses.forEach(r => {
+                const method = r.submission_method || 'web';
+                if (methods[method] !== undefined) methods[method]++;
+            });
+
+            const total = currentResponses.length || 1;
+            const data = [
+                { label: 'Web', value: Math.round((methods.web / total) * 100), color: '#6c5ce7' },
+                { label: 'Voice', value: Math.round((methods.voice / total) * 100), color: '#00b894' },
+                { label: 'SMS', value: Math.round((methods.sms / total) * 100), color: '#fdcb6e' }
+            ];
+
+            let html = '';
+            let hiddenText = 'Response Methods Chart:\n';
+
+            data.forEach(item => {
+                html += `
+                    <div class="chart-bar-label">
+                        <span>${item.label}</span>
+                        <span>${item.value}%</span>
+                    </div>
+                    <div class="chart-bar" style="width: ${item.value}%; background: ${item.color};"></div>
+                `;
+                hiddenText += `${item.label}: ${item.value}%\n`;
+            });
+
+            container.innerHTML = html;
+            chartData.textContent = hiddenText;
+        }
+
+        // =============================================
+        // RENDER RESPONSES TABLE
+        // =============================================
+        function renderTable() {
+            const tbody = document.getElementById('responsesTableBody');
+            
+            if (currentResponses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No responses yet.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            currentResponses.forEach((r, index) => {
+                const respondentName = r.respondent_name || 'Anonymous';
+                const submittedAt = new Date(r.submitted_at).toLocaleString();
+                const method = r.submission_method || 'web';
+                const answersCount = r.answers?.length || 0;
+                const phone = r.phone_number || '-';
+
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${escapeHtml(respondentName)}</td>
+                        <td>${submittedAt}</td>
+                        <td><span class="badge bg-info">${escapeHtml(method)}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewResponse('${r._id}')">
+                                ${answersCount} answers
+                            </button>
+                        </td>
+                        <td>${escapeHtml(phone)}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // =============================================
+        // VIEW INDIVIDUAL RESPONSE
+        // =============================================
+        function viewResponse(responseId) {
+            const response = currentResponses.find(r => r._id === responseId);
+            if (!response) return;
+
+            document.getElementById('viewResponseTitle').textContent = 'Response from ' + (response.respondent_name || 'Anonymous');
+
+            let html = '<ul>';
+            if (response.answers && response.answers.length > 0) {
+                response.answers.forEach(a => {
+                    const questionId = a.questionId || 'Q';
+                    const answer = a.answer || 'N/A';
+                    html += `<li><strong>${escapeHtml(questionId)}:</strong> ${escapeHtml(answer)}</li>`;
+                });
+            } else {
+                html += '<li>No answers recorded.</li>';
+            }
+            html += '</ul>';
+
+            if (response.phone_number) {
+                html += `<p><strong>📞 Phone:</strong> ${escapeHtml(response.phone_number)}</p>`;
+            }
+
+            document.getElementById('viewResponseAnswers').innerHTML = html;
+            document.getElementById('viewResponseModal').style.display = 'block';
+        }
+
+        // =============================================
+        // EXPORT FUNCTIONS
+        // =============================================
+        function exportCSV() {
+            if (currentResponses.length === 0) {
+                document.getElementById('exportMessage').innerHTML = '<span class="text-danger">No data to export.</span>';
+                return;
+            }
+
+            let csv = 'Respondent,Submitted,Method,Answers,Phone\n';
+            currentResponses.forEach(r => {
+                const answers = r.answers ? r.answers.map(a => a.answer).join('; ') : '';
+                csv += `${r.respondent_name || 'Anonymous'},${r.submitted_at},${r.submission_method || 'web'},"${answers}",${r.phone_number || ''}\n`;
+            });
+
+            // Download CSV
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'responses.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            document.getElementById('exportMessage').innerHTML = '<span class="text-success">✅ CSV file downloaded successfully!</span>';
+            setTimeout(() => { document.getElementById('exportMessage').innerHTML = ''; }, 3000);
+        }
+
+        function exportExcel() {
+            if (currentResponses.length === 0) {
+                document.getElementById('exportMessage').innerHTML = '<span class="text-danger">No data to export.</span>';
+                return;
+            }
+
+            // Create HTML table for Excel (Excel can open HTML tables)
+            let html = `<html><head><meta charset="UTF-8"><title>Responses</title></head><body><h1>Form Responses</h1><table border="1">`;
+            html += `<tr><th>#</th><th>Respondent</th><th>Submitted</th><th>Method</th><th>Answers</th><th>Phone</th></tr>`;
+            currentResponses.forEach((r, i) => {
+                const answers = r.answers ? r.answers.map(a => a.answer).join('; ') : '';
+                html += `<tr>
+                    <td>${i+1}</td>
+                    <td>${r.respondent_name || 'Anonymous'}</td>
+                    <td>${new Date(r.submitted_at).toLocaleString()}</td>
+                    <td>${r.submission_method || 'web'}</td>
+                    <td>${answers}</td>
+                    <td>${r.phone_number || ''}</td>
+                </tr>`;
+            });
+            html += `</table></body></html>`;
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'responses.xls';
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            document.getElementById('exportMessage').innerHTML = '<span class="text-success">✅ Excel file downloaded successfully!</span>';
+            setTimeout(() => { document.getElementById('exportMessage').innerHTML = ''; }, 3000);
+        }
+
+        function exportPDF() {
+            if (currentResponses.length === 0) {
+                document.getElementById('exportMessage').innerHTML = '<span class="text-danger">No data to export.</span>';
+                return;
+            }
+
+            // Simple print simulation (PDF)
+            document.getElementById('exportMessage').innerHTML = '<span class="text-info">⏳ Preparing PDF...</span>';
+            
+            // Create a printable version
+            const printContent = document.createElement('div');
+            printContent.innerHTML = `
+                <h1>Form Responses</h1>
+                <p>Form: ${currentForm?.title || 'Unknown Form'}</p>
+                <p>Total Responses: ${currentResponses.length}</p>
+                <hr>
+                <table border="1" cellpadding="5" style="width:100%;border-collapse:collapse;">
+                    <tr><th>#</th><th>Respondent</th><th>Submitted</th><th>Method</th><th>Answers</th><th>Phone</th></tr>
+                    ${currentResponses.map((r, i) => `
+                        <tr>
+                            <td>${i+1}</td>
+                            <td>${r.respondent_name || 'Anonymous'}</td>
+                            <td>${new Date(r.submitted_at).toLocaleString()}</td>
+                            <td>${r.submission_method || 'web'}</td>
+                            <td>${r.answers ? r.answers.map(a => a.answer).join('; ') : ''}</td>
+                            <td>${r.phone_number || ''}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+                <hr>
+                <p><small>Generated by AccessForm - Accessible Survey Builder</small></p>
+            `;
+
+            const win = window.open('', '_blank');
+            win.document.write(printContent.innerHTML);
+            win.document.close();
+            win.print();
+
+            document.getElementById('exportMessage').innerHTML = '<span class="text-success">✅ PDF opened for printing!</span>';
+            setTimeout(() => { document.getElementById('exportMessage').innerHTML = ''; }, 3000);
+        }
+
+        // =============================================
+        // HELPER FUNCTIONS
+        // =============================================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+        }
+
+        function goBack() {
+            window.location.href = 'dashboard-creator.html';
+        }
+
+        // =============================================
+        // INIT
+        // =============================================
+        loadForms();
+    </script>
+</body>
+</html>

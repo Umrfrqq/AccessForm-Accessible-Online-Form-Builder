@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Preview - AccessForm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *:focus { outline: 3px solid #005fcc !important; }
+        .preview-mode { background-color: #f5f5f5; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="alert alert-info">
+            <i class="fas fa-eye me-2"></i>
+            Preview Mode - This is how respondents will see your form
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h1>Customer Satisfaction Survey</h1>
+                <p>Please help us improve our services</p>
+            </div>
+            <div class="card-body">
+                <!-- Question 1 -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">What is your name? <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" placeholder="Your answer">
+                </div>
+                
+                <!-- Question 2 -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Email address</label>
+                    <input type="email" class="form-control" placeholder="your@email.com">
+                </div>
+                
+                <!-- Question 3 -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">How satisfied are you?</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="satisfaction">
+                        <label class="form-check-label">Very Satisfied</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="satisfaction">
+                        <label class="form-check-label">Satisfied</label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary">Submit Survey</button>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            <a href="form-editor.html" class="btn btn-secondary">Back to Editor</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AccessForm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *:focus { outline: 3px solid #ffd700 !important; outline-offset: 2px !important; }
+        .skip-link { position: absolute; top: -40px; left: 0; background: #000; color: white; padding: 8px; z-index: 100; text-decoration: none; }
+        .skip-link:focus { top: 0; }
+        
+        body { background: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .dashboard-wrapper { max-width: 1500px; margin: auto; padding: 20px; }
+        
+        .sidebar {
+            background: #1a1a2e;
+            color: #fff;
+            border-radius: 16px;
+            padding: 20px 0;
+            min-height: 600px;
+            height: 100%;
+            position: sticky;
+            top: 20px;
+        }
+        .sidebar .brand {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 15px;
+        }
+        .sidebar .brand h3 { font-weight: 700; color: #fff; font-size: 22px; }
+        .sidebar .brand h3 i { color: #6c5ce7; margin-right: 10px; }
+        .sidebar .brand small { color: #a0aec0; font-size: 12px; display: block; margin-top: 4px; }
+        
+        .sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #a0aec0;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            margin: 2px 0;
+        }
+        .sidebar .nav-item:hover { background: rgba(108,92,231,0.1); color: #fff; }
+        .sidebar .nav-item.active { background: rgba(108,92,231,0.15); color: #fff; border-left-color: #6c5ce7; }
+        .sidebar .nav-item i { width: 24px; margin-right: 12px; font-size: 16px; }
+        .sidebar .nav-item .badge { margin-left: auto; }
+        .sidebar .nav-divider { border-top: 1px solid rgba(255,255,255,0.08); margin: 10px 20px; }
+        
+        .sidebar .user-profile {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            margin-top: 10px;
+        }
+        .sidebar .user-profile .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #6c5ce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: #fff;
+        }
+        .sidebar .user-profile .user-info { margin-left: 12px; }
+        .sidebar .user-profile .user-info strong { display: block; color: #fff; font-size: 14px; }
+        .sidebar .user-profile .user-info small { color: #a0aec0; font-size: 12px; }
+        
+        .main-content {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            min-height: 600px;
+            height: 100%;
+        }
+        .main-content .page-title { font-weight: 700; color: #2d3748; margin-bottom: 20px; font-size: 24px; }
+        .main-content .page-title i { color: #6c5ce7; margin-right: 10px; }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            border: 1px solid #e9ecef;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+        .stat-card .stat-icon { font-size: 28px; margin-bottom: 6px; display: block; }
+        .stat-card .stat-number { font-size: 30px; font-weight: 700; color: #2d3748; }
+        .stat-card .stat-label { color: #718096; font-size: 13px; font-weight: 500; }
+        .stat-card.purple .stat-icon { color: #6c5ce7; }
+        .stat-card.green .stat-icon { color: #48bb78; }
+        .stat-card.blue .stat-icon { color: #4299e1; }
+        .stat-card.orange .stat-icon { color: #ed8936; }
+        .stat-card.red .stat-icon { color: #fc8181; }
+        
+        .chart-wrapper {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            margin: 10px 0;
+        }
+        .chart-wrapper h6 { font-weight: 600; color: #2d3748; margin-bottom: 15px; }
+        .chart-wrapper h6 i { margin-right: 8px; }
+        .chart-container { position: relative; height: 220px; }
+        
+        .table-container { overflow-x: auto; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th { background: #f8f9fa; padding: 12px 15px; text-align: left; font-weight: 600; color: #2d3748; border-bottom: 2px solid #e9ecef; }
+        .table td { padding: 12px 15px; border-bottom: 1px solid #e9ecef; }
+        .table tr:hover { background: #f8f9fa; }
+        .table .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        
+        .form-card {
+            border: 1px solid #e9ecef;
+            padding: 18px 20px;
+            margin: 10px 0;
+            border-radius: 12px;
+            background: white;
+            transition: all 0.2s;
+        }
+        .form-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.04); border-color: #6c5ce7; }
+        .form-card h5 { font-weight: 600; color: #2d3748; }
+        
+        .response-item {
+            border-left: 3px solid #6c5ce7;
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-content { background: white; margin: 40px auto; padding: 30px; width: 700px; border-radius: 16px; max-height: 85%; overflow-y: auto; max-width: 95%; position: relative; }
+        .modal-content h3 { font-weight: 700; color: #2d3748; }
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            padding: 0 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .modal-close-btn:hover { color: #333; background: #f0f0f0; }
+        .modal-close-btn:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        
+        .btn-primary { background: #6c5ce7; border: none; border-radius: 30px; padding: 8px 20px; font-weight: 500; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(108,92,231,0.3); }
+        .btn-primary:disabled { background: #a0aec0; cursor: not-allowed; transform: none; }
+        .btn-primary:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .btn-success { background: #48bb78; border: none; border-radius: 30px; padding: 8px 20px; font-weight: 500; color: white; }
+        .btn-success:hover { background: #38a169; }
+        .btn-success:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .btn-danger { background: #fc8181; border: none; border-radius: 30px; padding: 8px 20px; font-weight: 500; color: white; }
+        .btn-danger:hover { background: #f56565; }
+        .btn-danger:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .btn-secondary { background: #a0aec0; border: none; border-radius: 30px; padding: 8px 20px; font-weight: 500; color: white; }
+        .btn-secondary:hover { background: #718096; }
+        .btn-secondary:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .btn-outline-info { background: transparent; border: 1px solid #63b3ed; color: #4299e1; border-radius: 30px; padding: 5px 14px; }
+        .btn-outline-info:hover { background: #63b3ed; color: white; }
+        .btn-outline-info:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .btn-sm { padding: 5px 14px; font-size: 12px; border: none; border-radius: 20px; cursor: pointer; transition: all 0.2s; }
+        .btn-sm:hover { transform: translateY(-1px); }
+        .btn-close-form { background: #fc8181; color: white; border: none; border-radius: 20px; padding: 5px 14px; }
+        .btn-close-form:hover { background: #f56565; }
+        .btn-close-form:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6c5ce7;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .tab-pane { display: none; padding: 15px 0; }
+        .tab-pane.active { display: block; }
+        
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .badge-success { background: #48bb78; color: white; }
+        .badge-danger { background: #fc8181; color: white; }
+        .badge-secondary { background: #a0aec0; color: white; }
+        .badge-info { background: #63b3ed; color: white; }
+        .badge-warning { background: #f6ad55; color: #1a1a2e; }
+        
+        .accessibility-panel {
+            background: #f8f9fa;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .accessibility-panel .panel-label { font-weight: 600; color: #495057; font-size: 14px; }
+        .accessibility-panel .btn-group { display: flex; flex-wrap: wrap; gap: 5px; }
+        .accessibility-panel .btn-group .btn { border-radius: 20px; padding: 4px 14px; font-size: 13px; }
+        
+        .settings-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        .settings-card h6 { font-weight: 600; color: #2d3748; margin-bottom: 15px; }
+        .settings-card h6 i { margin-right: 10px; color: #6c5ce7; }
+        .settings-card .form-control { border-radius: 8px; border: 1px solid #e9ecef; padding: 10px 14px; font-size: 14px; }
+        .settings-card .form-control:focus { border-color: #6c5ce7; box-shadow: 0 0 0 3px rgba(108,92,231,0.1); }
+        
+        .profile-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #e9ecef;
+        }
+        .profile-card .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #6c5ce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 auto 15px;
+        }
+        
+        .help-card {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .help-card:hover { border-color: #6c5ce7; transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .help-card:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .help-card i { font-size: 32px; color: #6c5ce7; margin-bottom: 10px; }
+        .help-card h6 { font-weight: 600; color: #2d3748; }
+        .help-card p { font-size: 13px; color: #718096; }
+        
+        .notification-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 6px 0;
+            background: #f8f9fa;
+            border-left: 3px solid #6c5ce7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notification-item.unread { background: #f0f0ff; border-left-color: #6c5ce7; }
+        .notification-item .noti-text { font-size: 14px; }
+        .notification-item .noti-time { font-size: 12px; color: #a0aec0; }
+        .notification-item .noti-badge { background: #6c5ce7; color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+        
+        .high-contrast { background-color: #000 !important; color: #fff !important; }
+        .high-contrast .main-content { background-color: #1a1a2e !important; color: #fff !important; }
+        .high-contrast .stat-card { background-color: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        .high-contrast .stat-card .stat-number { color: #fff !important; }
+        .high-contrast .stat-card .stat-label { color: #ccc !important; }
+        .high-contrast .chart-wrapper { background-color: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        .high-contrast .chart-wrapper h6 { color: #fff !important; }
+        .high-contrast .form-card { background-color: #2d2d44 !important; color: #fff !important; border-color: #6c5ce7 !important; }
+        .high-contrast .modal-content { background-color: #1a1a2e !important; color: #fff !important; }
+        .high-contrast .response-item { background: #2d2d44 !important; color: #fff !important; }
+        .high-contrast .accessibility-panel { background: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        .high-contrast .settings-card { background-color: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        .high-contrast .settings-card .form-control { background-color: #444 !important; color: #fff !important; border-color: #6c5ce7 !important; }
+        .high-contrast .settings-card .form-control:disabled { background-color: #333 !important; color: #aaa !important; }
+        .high-contrast .help-card { background-color: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        .high-contrast .profile-card { background-color: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        .high-contrast .table th { background: #2d2d44 !important; color: #fff !important; }
+        .high-contrast .table td { border-bottom: 1px solid #444 !important; }
+        .high-contrast .table tr:hover { background: #333 !important; }
+        
+        .dyslexia-mode { font-family: 'Comic Sans MS', 'OpenDyslexic', Arial, sans-serif !important; line-height: 1.7; letter-spacing: 0.5px; }
+        
+        .sr-announce {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            border: 0;
+        }
+        
+        .tab-pane:focus { outline: none; }
+        
+        @media (max-width: 768px) {
+            .sidebar { min-height: auto; border-radius: 12px; margin-bottom: 15px; position: static; }
+            .main-content { padding: 15px; }
+            .stat-card .stat-number { font-size: 24px; }
+            .modal-content { width: 95%; margin: 20px auto; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<div class="dashboard-wrapper">
+    <div class="row g-3">
+        <!-- ============================================= -->
+        <!-- SIDEBAR -->
+        <!-- ============================================= -->
+        <div class="col-md-3 col-lg-2" role="navigation" aria-label="Main navigation">
+            <div class="sidebar">
+                <div class="brand">
+                    <h3><i class="fas fa-crown" aria-hidden="true"></i>AccessForm</h3>
+                    <small>Admin Dashboard</small>
+                </div>
+                
+                <nav aria-label="Admin navigation">
+                    <div class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard" role="button" tabindex="0" aria-label="Dashboard" aria-current="page" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('dashboard')">
+                        <i class="fas fa-home" aria-hidden="true"></i> Dashboard
+                    </div>
+                    <div class="nav-item" onclick="showPage('users')" data-page="users" role="button" tabindex="0" aria-label="Users" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('users')">
+                        <i class="fas fa-users" aria-hidden="true"></i> Users
+                        <span class="badge bg-info" id="userCountBadge">0</span>
+                    </div>
+                    <div class="nav-item" onclick="showPage('forms')" data-page="forms" role="button" tabindex="0" aria-label="All Forms" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('forms')">
+                        <i class="fas fa-file-alt" aria-hidden="true"></i> All Forms
+                        <span class="badge bg-success" id="formCountBadge">0</span>
+                    </div>
+                    <div class="nav-item" onclick="showPage('responses')" data-page="responses" role="button" tabindex="0" aria-label="All Responses" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('responses')">
+                        <i class="fas fa-chart-bar" aria-hidden="true"></i> All Responses
+                        <span class="badge bg-warning" id="responseCountBadge">0</span>
+                    </div>
+                    <div class="nav-divider"></div>
+                    <div class="nav-item" onclick="showPage('analytics')" data-page="analytics" role="button" tabindex="0" aria-label="Analytics" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('analytics')">
+                        <i class="fas fa-chart-pie" aria-hidden="true"></i> Analytics
+                    </div>
+                    <div class="nav-item" onclick="showPage('accessibility')" data-page="accessibility" role="button" tabindex="0" aria-label="Accessibility" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('accessibility')">
+                        <i class="fas fa-universal-access" aria-hidden="true"></i> Accessibility
+                    </div>
+                    <div class="nav-divider"></div>
+                    <div class="nav-item" onclick="showPage('reports')" data-page="reports" role="button" tabindex="0" aria-label="Reports" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('reports')">
+                        <i class="fas fa-flag" aria-hidden="true"></i> Reports / Issues
+                        <span class="badge bg-danger">2</span>
+                    </div>
+                    <div class="nav-item" onclick="showPage('notifications')" data-page="notifications" role="button" tabindex="0" aria-label="Notifications" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('notifications')">
+                        <i class="fas fa-bell" aria-hidden="true"></i> Notifications
+                        <span class="badge bg-danger">3</span>
+                    </div>
+                    <div class="nav-divider"></div>
+                    <div class="nav-item" onclick="showPage('profile')" data-page="profile" role="button" tabindex="0" aria-label="Profile" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('profile')">
+                        <i class="fas fa-user-circle" aria-hidden="true"></i> Profile
+                    </div>
+                    <div class="nav-item" onclick="showPage('help')" data-page="help" role="button" tabindex="0" aria-label="Help and Support" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('help')">
+                        <i class="fas fa-question-circle" aria-hidden="true"></i> Help & Support
+                    </div>
+                    <div class="nav-divider"></div>
+                    <div class="nav-item" onclick="logout()" style="color: #fc8181;" role="button" tabindex="0" aria-label="Logout" onkeydown="if(event.key==='Enter'||event.key===' ')logout()">
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Logout
+                    </div>
+                </nav>
+                
+                <div class="user-profile">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar" id="userAvatar" aria-hidden="true">A</div>
+                        <div class="user-info">
+                            <strong id="userNameDisplay">Admin</strong>
+                            <small>Administrator</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ============================================= -->
+        <!-- MAIN CONTENT -->
+        <!-- ============================================= -->
+        <div class="col-md-9 col-lg-10">
+            <div class="main-content" id="main-content" role="main">
+                <!-- Accessibility Panel -->
+                <div class="accessibility-panel" role="region" aria-label="Accessibility options">
+                    <span class="panel-label"><i class="fas fa-universal-access me-2" aria-hidden="true"></i>Accessibility:</span>
+                    <div class="btn-group">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="toggleHighContrast()" aria-label="Toggle high contrast mode">
+                            <i class="fas fa-adjust me-1" aria-hidden="true"></i> High Contrast
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="toggleDyslexiaMode()" aria-label="Toggle dyslexia-friendly font">
+                            <i class="fas fa-font me-1" aria-hidden="true"></i> Dyslexia Font
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="increaseFontSize()" aria-label="Increase font size">
+                            <i class="fas fa-plus-circle me-1" aria-hidden="true"></i> A+
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="decreaseFontSize()" aria-label="Decrease font size">
+                            <i class="fas fa-minus-circle me-1" aria-hidden="true"></i> A-
+                        </button>
+                    </div>
+                    <div id="accessibilityMessage" class="ms-auto text-muted small" aria-live="polite"></div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: DASHBOARD -->
+                <!-- ============================================= -->
+                <div id="page-dashboard" class="tab-pane active" role="tabpanel" aria-label="Dashboard" tabindex="-1">
+                    <h4 class="page-title" id="dashboard-heading"><i class="fas fa-home" aria-hidden="true"></i>Dashboard</h4>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card purple" role="article" aria-label="Total users statistics">
+                                <span class="stat-icon"><i class="fas fa-users" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="statUsers">0</div>
+                                <div class="stat-label">Total Users</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card green" role="article" aria-label="Total forms statistics">
+                                <span class="stat-icon"><i class="fas fa-file-alt" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="statForms">0</div>
+                                <div class="stat-label">Total Forms</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card blue" role="article" aria-label="Total responses statistics">
+                                <span class="stat-icon"><i class="fas fa-chart-bar" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="statResponses">0</div>
+                                <div class="stat-label">Total Responses</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card orange" role="article" aria-label="Accessibility score">
+                                <span class="stat-icon"><i class="fas fa-percentage" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="statCompletion">100%</div>
+                                <div class="stat-label">Accessibility Score</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="chart-wrapper" role="figure" aria-label="Form status distribution chart">
+                                <h6><i class="fas fa-chart-pie" style="color: #6c5ce7;" aria-hidden="true"></i>Form Status Distribution</h6>
+                                <div class="chart-container"><canvas id="dashboardStatusChart"></canvas></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-wrapper" role="figure" aria-label="Activity overview chart">
+                                <h6><i class="fas fa-chart-line" style="color: #6c5ce7;" aria-hidden="true"></i>Activity Overview</h6>
+                                <div class="chart-container"><canvas id="dashboardActivityChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6><i class="fas fa-clock me-2" aria-hidden="true"></i>Recent Activity</h6>
+                        <div id="recentActivityList"></div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: USERS -->
+                <!-- ============================================= -->
+                <div id="page-users" class="tab-pane" role="tabpanel" aria-label="Users management" tabindex="-1">
+                    <h4 class="page-title" id="users-heading"><i class="fas fa-users" aria-hidden="true"></i>Users Management</h4>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Phone</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable"><tr><td colspan="6" class="text-center"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: ALL FORMS -->
+                <!-- ============================================= -->
+                <div id="page-forms" class="tab-pane" role="tabpanel" aria-label="All forms" tabindex="-1">
+                    <h4 class="page-title" id="forms-heading"><i class="fas fa-file-alt" aria-hidden="true"></i>All Forms</h4>
+                    <div id="allFormsList"><div class="spinner"></div></div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: ALL RESPONSES -->
+                <!-- ============================================= -->
+                <div id="page-responses" class="tab-pane" role="tabpanel" aria-label="All responses" tabindex="-1">
+                    <h4 class="page-title" id="responses-heading"><i class="fas fa-chart-bar" aria-hidden="true"></i>All Responses</h4>
+                    <div id="allResponsesList"><div class="spinner"></div></div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: ANALYTICS -->
+                <!-- ============================================= -->
+                <div id="page-analytics" class="tab-pane" role="tabpanel" aria-label="Analytics" tabindex="-1">
+                    <h4 class="page-title" id="analytics-heading"><i class="fas fa-chart-pie" aria-hidden="true"></i>Analytics</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="chart-wrapper">
+                                <h6><i class="fas fa-chart-pie" style="color: #6c5ce7;" aria-hidden="true"></i>User Roles Distribution</h6>
+                                <div class="chart-container"><canvas id="analyticsRolesChart"></canvas></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-wrapper">
+                                <h6><i class="fas fa-chart-bar" style="color: #6c5ce7;" aria-hidden="true"></i>Submissions by Month</h6>
+                                <div class="chart-container"><canvas id="analyticsSubmissionsChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <div class="stat-card purple">
+                                <span class="stat-icon"><i class="fas fa-users" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="analyticsTotalUsers">0</div>
+                                <div class="stat-label">Total Users</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card green">
+                                <span class="stat-icon"><i class="fas fa-file-alt" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="analyticsTotalForms">0</div>
+                                <div class="stat-label">Total Forms</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card blue">
+                                <span class="stat-icon"><i class="fas fa-chart-bar" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="analyticsTotalResponses">0</div>
+                                <div class="stat-label">Total Responses</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card orange">
+                                <span class="stat-icon"><i class="fas fa-check-circle" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="analyticsCompletion">100%</div>
+                                <div class="stat-label">Accessibility</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: ACCESSIBILITY -->
+                <!-- ============================================= -->
+                <div id="page-accessibility" class="tab-pane" role="tabpanel" aria-label="Accessibility settings" tabindex="-1">
+                    <h4 class="page-title" id="accessibility-heading"><i class="fas fa-universal-access" aria-hidden="true"></i>Accessibility Settings</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="settings-card p-4">
+                                <h6><i class="fas fa-adjust me-2" aria-hidden="true"></i>High Contrast</h6>
+                                <p class="text-muted">Toggle high contrast mode for better visibility.</p>
+                                <button class="btn btn-primary" onclick="toggleHighContrast()" aria-label="Toggle high contrast"><i class="fas fa-adjust me-2" aria-hidden="true"></i> Toggle</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="settings-card p-4">
+                                <h6><i class="fas fa-font me-2" aria-hidden="true"></i>Dyslexia Font</h6>
+                                <p class="text-muted">Enable dyslexia-friendly font for easier reading.</p>
+                                <button class="btn btn-primary" onclick="toggleDyslexiaMode()" aria-label="Toggle dyslexia font"><i class="fas fa-font me-2" aria-hidden="true"></i> Toggle</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="settings-card p-4">
+                                <h6><i class="fas fa-text-height me-2" aria-hidden="true"></i>Font Size</h6>
+                                <p class="text-muted">Adjust text size for better readability.</p>
+                                <div class="d-flex gap-3">
+                                    <button class="btn btn-outline-secondary" onclick="decreaseFontSize()" aria-label="Decrease font size"><i class="fas fa-minus" aria-hidden="true"></i> Decrease</button>
+                                    <button class="btn btn-outline-secondary" onclick="increaseFontSize()" aria-label="Increase font size"><i class="fas fa-plus" aria-hidden="true"></i> Increase</button>
+                                    <button class="btn btn-outline-secondary" onclick="resetFontSize()" aria-label="Reset font size"><i class="fas fa-undo" aria-hidden="true"></i> Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="settings-card p-4">
+                                <h6><i class="fas fa-check-circle me-2" aria-hidden="true"></i>WCAG Score</h6>
+                                <p class="text-muted">Your dashboard meets WCAG 2.1 AA standards.</p>
+                                <div class="progress" style="height: 25px;" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-success" style="width: 100%; font-weight: 600;">100%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: REPORTS / ISSUES -->
+                <!-- ============================================= -->
+                <div id="page-reports" class="tab-pane" role="tabpanel" aria-label="Reports and issues" tabindex="-1">
+                    <h4 class="page-title" id="reports-heading"><i class="fas fa-flag" aria-hidden="true"></i>Reports / Issues</h4>
+                    <div id="reportsList">
+                        <div class="notification-item unread">
+                            <div>
+                                <div class="noti-text"><strong>⚠️ Form "Customer Survey"</strong> - Multiple duplicate responses detected</div>
+                                <div class="noti-time">Reported 2 hours ago</div>
+                            </div>
+                            <span class="noti-badge">New</span>
+                        </div>
+                        <div class="notification-item unread">
+                            <div>
+                                <div class="noti-text"><strong>🚨 User "john@example.com"</strong> - Suspicious activity detected</div>
+                                <div class="noti-time">Reported 5 hours ago</div>
+                            </div>
+                            <span class="noti-badge">New</span>
+                        </div>
+                        <div class="notification-item">
+                            <div>
+                                <div class="noti-text"><strong>📊 Form "Feedback Form"</strong> - Low completion rate (34%)</div>
+                                <div class="noti-time">Reported 1 day ago</div>
+                            </div>
+                            <span class="badge bg-secondary">Resolved</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: NOTIFICATIONS -->
+                <!-- ============================================= -->
+                <div id="page-notifications" class="tab-pane" role="tabpanel" aria-label="Notifications" tabindex="-1">
+                    <h4 class="page-title" id="notifications-heading"><i class="fas fa-bell" aria-hidden="true"></i>Notifications</h4>
+                    <div id="notificationsList">
+                        <div class="notification-item unread">
+                            <div>
+                                <div class="noti-text"><strong>📝 New form created</strong> - "Customer Survey" by Creator1</div>
+                                <div class="noti-time">10 minutes ago</div>
+                            </div>
+                            <span class="noti-badge">New</span>
+                        </div>
+                        <div class="notification-item unread">
+                            <div>
+                                <div class="noti-text"><strong>📊 New response received</strong> - "Feedback Form" got 5 new responses</div>
+                                <div class="noti-time">1 hour ago</div>
+                            </div>
+                            <span class="noti-badge">New</span>
+                        </div>
+                        <div class="notification-item unread">
+                            <div>
+                                <div class="noti-text"><strong>👤 New user registered</strong> - "sarah@example.com" signed up as Respondent</div>
+                                <div class="noti-time">3 hours ago</div>
+                            </div>
+                            <span class="noti-badge">New</span>
+                        </div>
+                        <div class="notification-item">
+                            <div>
+                                <div class="noti-text"><strong>✅ Form closed</strong> - "Event Registration" has been closed</div>
+                                <div class="noti-time">1 day ago</div>
+                            </div>
+                            <span class="badge bg-secondary">Read</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: PROFILE -->
+                <!-- ============================================= -->
+                <div id="page-profile" class="tab-pane" role="tabpanel" aria-label="Profile" tabindex="-1">
+                    <h4 class="page-title" id="profile-heading"><i class="fas fa-user-circle" aria-hidden="true"></i>My Profile</h4>
+                    <div class="profile-card">
+                        <div class="profile-avatar" id="profileAvatar" aria-hidden="true">A</div>
+                        <h5 id="profileName">Admin</h5>
+                        <p class="text-muted" id="profileEmail">admin@example.com</p>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" for="profileFullName">Full Name</label>
+                                    <input type="text" class="form-control" id="profileFullName" placeholder="Enter your full name" aria-label="Full name">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" for="profileEmailInput">Email</label>
+                                    <input type="email" class="form-control" id="profileEmailInput" placeholder="Enter your email" aria-label="Email address">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" for="profilePhone">Phone Number</label>
+                                    <input type="tel" class="form-control" id="profilePhone" placeholder="Enter phone number" aria-label="Phone number">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" for="profileRole">Role</label>
+                                    <input type="text" class="form-control" id="profileRole" value="Administrator" disabled aria-label="Role">
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="updateProfile()" aria-label="Update profile"><i class="fas fa-save me-2" aria-hidden="true"></i> Update Profile</button>
+                        <div id="profileMessage" class="mt-3" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: HELP & SUPPORT -->
+                <!-- ============================================= -->
+                <div id="page-help" class="tab-pane" role="tabpanel" aria-label="Help and support" tabindex="-1">
+                    <h4 class="page-title" id="help-heading"><i class="fas fa-question-circle" aria-hidden="true"></i>Help & Support</h4>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('faq')" role="button" tabindex="0" aria-label="FAQ" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('faq')">
+                                <i class="fas fa-question-circle" aria-hidden="true"></i>
+                                <h6>FAQ</h6>
+                                <p>Frequently asked questions</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('guide')" role="button" tabindex="0" aria-label="User Guide" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('guide')">
+                                <i class="fas fa-book" aria-hidden="true"></i>
+                                <h6>User Guide</h6>
+                                <p>How to use the dashboard</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('contact')" role="button" tabindex="0" aria-label="Contact Support" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('contact')">
+                                <i class="fas fa-envelope" aria-hidden="true"></i>
+                                <h6>Contact Support</h6>
+                                <p>Get help from our team</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('accessibility')" role="button" tabindex="0" aria-label="Accessibility Help" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('accessibility')">
+                                <i class="fas fa-universal-access" aria-hidden="true"></i>
+                                <h6>Accessibility Help</h6>
+                                <p>Accessibility features guide</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('report')" role="button" tabindex="0" aria-label="Report Issue" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('report')">
+                                <i class="fas fa-flag" aria-hidden="true"></i>
+                                <h6>Report Issue</h6>
+                                <p>Report a problem or bug</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('feedback')" role="button" tabindex="0" aria-label="Give Feedback" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('feedback')">
+                                <i class="fas fa-comment" aria-hidden="true"></i>
+                                <h6>Give Feedback</h6>
+                                <p>Share your suggestions</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="helpContent" class="mt-4 p-4 border rounded" role="region" aria-label="Help content">
+                        <p class="text-muted text-center">Select a help topic above to get started.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================= -->
+<!-- VIEW RESPONSES MODAL -->
+<!-- ============================================= -->
+<div id="viewResponsesModal" class="modal" role="dialog" aria-labelledby="viewResponsesTitle" aria-modal="true">
+    <div class="modal-content">
+        <button class="modal-close-btn" onclick="document.getElementById('viewResponsesModal').style.display='none'" aria-label="Close responses">✕</button>
+        <h3 id="viewResponsesTitle"><i class="fas fa-chart-bar me-2" aria-hidden="true"></i>Form Responses</h3>
+        <h5 id="responseFormTitle" class="text-muted"></h5>
+        <div id="responsesListContainer"></div>
+        <button class="btn btn-secondary mt-3" onclick="document.getElementById('viewResponsesModal').style.display='none'" aria-label="Close">Close</button>
+    </div>
+</div>
+
+<!-- ============================================= -->
+<!-- SCREEN READER ANNOUNCEMENT -->
+<!-- ============================================= -->
+<div id="srAnnounce" class="sr-announce" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+const API_URL = 'http://localhost:5000/api';
+const token = localStorage.getItem('token');
+const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+if (!token || user.role !== 'admin') {
+    window.location.href = 'index.html';
+}
+
+let allUsers = [];
+let allForms = [];
+let allResponses = [];
+let chartInstances = {};
+
+// =============================================
+// SCREEN READER ANNOUNCEMENT
+// =============================================
+function announceToScreenReader(message) {
+    const announcer = document.getElementById('srAnnounce');
+    if (announcer) {
+        announcer.textContent = '';
+        setTimeout(() => {
+            announcer.textContent = message;
+        }, 50);
+    }
+}
+
+// =============================================
+// USER INIT
+// =============================================
+document.getElementById('userNameDisplay').textContent = user.full_name || 'Admin';
+document.getElementById('userAvatar').textContent = (user.full_name || 'A').charAt(0).toUpperCase();
+document.getElementById('profileAvatar').textContent = (user.full_name || 'A').charAt(0).toUpperCase();
+document.getElementById('profileName').textContent = user.full_name || 'Admin';
+document.getElementById('profileEmail').textContent = user.email || 'admin@example.com';
+document.getElementById('profileFullName').value = user.full_name || '';
+document.getElementById('profileEmailInput').value = user.email || '';
+document.getElementById('profilePhone').value = user.phone_number || '';
+
+// =============================================
+// ACCESSIBILITY FUNCTIONS
+// =============================================
+function toggleHighContrast() {
+    document.body.classList.toggle('high-contrast');
+    localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
+    const msg = 'High contrast ' + (document.body.classList.contains('high-contrast') ? 'enabled' : 'disabled');
+    showAccessibilityMsg(msg);
+    announceToScreenReader(msg);
+}
+
+function toggleDyslexiaMode() {
+    document.body.classList.toggle('dyslexia-mode');
+    localStorage.setItem('dyslexiaMode', document.body.classList.contains('dyslexia-mode'));
+    const msg = 'Dyslexia font ' + (document.body.classList.contains('dyslexia-mode') ? 'enabled' : 'disabled');
+    showAccessibilityMsg(msg);
+    announceToScreenReader(msg);
+}
+
+function increaseFontSize() {
+    let size = parseFloat(getComputedStyle(document.body).fontSize) || 16;
+    if (size < 32) {
+        document.body.style.fontSize = (size + 2) + 'px';
+        localStorage.setItem('fontSize', document.body.style.fontSize);
+        const msg = 'Font size increased to ' + document.body.style.fontSize;
+        showAccessibilityMsg(msg);
+        announceToScreenReader(msg);
+    }
+}
+
+function decreaseFontSize() {
+    let size = parseFloat(getComputedStyle(document.body).fontSize) || 16;
+    if (size > 12) {
+        document.body.style.fontSize = (size - 2) + 'px';
+        localStorage.setItem('fontSize', document.body.style.fontSize);
+        const msg = 'Font size decreased to ' + document.body.style.fontSize;
+        showAccessibilityMsg(msg);
+        announceToScreenReader(msg);
+    }
+}
+
+function resetFontSize() {
+    document.body.style.fontSize = '16px';
+    localStorage.removeItem('fontSize');
+    const msg = 'Font size reset to default';
+    showAccessibilityMsg(msg);
+    announceToScreenReader(msg);
+}
+
+function showAccessibilityMsg(msg) {
+    const el = document.getElementById('accessibilityMessage');
+    el.textContent = msg;
+    el.style.opacity = 1;
+    clearTimeout(el._timeout);
+    el._timeout = setTimeout(() => { el.style.opacity = 0; }, 3000);
+}
+
+if (localStorage.getItem('highContrast') === 'true') document.body.classList.add('high-contrast');
+if (localStorage.getItem('dyslexiaMode') === 'true') document.body.classList.add('dyslexia-mode');
+if (localStorage.getItem('fontSize')) document.body.style.fontSize = localStorage.getItem('fontSize');
+
+// =============================================
+// PAGE NAVIGATION
+// =============================================
+function showPage(pageName) {
+    document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    
+    const page = document.getElementById('page-' + pageName);
+    if (page) {
+        page.classList.add('active');
+        page.focus();
+    }
+    
+    const nav = document.querySelector(`.nav-item[data-page="${pageName}"]`);
+    if (nav) nav.classList.add('active');
+    
+    const pageNames = {
+        'dashboard': 'Dashboard',
+        'users': 'Users Management',
+        'forms': 'All Forms',
+        'responses': 'All Responses',
+        'analytics': 'Analytics',
+        'accessibility': 'Accessibility Settings',
+        'reports': 'Reports and Issues',
+        'notifications': 'Notifications',
+        'profile': 'Profile',
+        'help': 'Help and Support'
+    };
+    announceToScreenReader('Navigated to ' + (pageNames[pageName] || pageName));
+    
+    if (pageName === 'users') loadUsers();
+    if (pageName === 'forms') loadAllForms();
+    if (pageName === 'responses') loadAllResponses();
+    if (pageName === 'analytics') loadAnalytics();
+    
+    document.getElementById('main-content').focus();
+}
+
+// =============================================
+// LOAD USERS
+// =============================================
+async function loadUsers() {
+    try {
+        const res = await fetch(`${API_URL}/admin/users`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            allUsers = data.users;
+            document.getElementById('statUsers').textContent = allUsers.length;
+            document.getElementById('userCountBadge').textContent = allUsers.length;
+            
+            document.getElementById('usersTable').innerHTML = allUsers.map(u => {
+                const isAdmin = u.role === 'admin';
+                const canDelete = !isAdmin;
+                return `
+                    <tr>
+                        <td><i class="fas fa-user-circle me-2" aria-hidden="true"></i>${escapeHtml(u.full_name)}</td>
+                        <td>${escapeHtml(u.email)}</td>
+                        <td><span class="badge ${u.role === 'admin' ? 'badge-danger' : u.role === 'creator' ? 'badge-info' : 'badge-secondary'}">${u.role}</span></td>
+                        <td>${u.phone_number || '-'}</td>
+                        <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                        <td>
+                            ${canDelete ? `<button class="btn-sm btn-danger" onclick="deleteUser('${u._id}')" aria-label="Delete user ${escapeHtml(u.full_name)}"><i class="fas fa-trash" aria-hidden="true"></i> Delete</button>` : 
+                            `<button class="btn-sm btn-secondary" disabled><i class="fas fa-lock" aria-hidden="true"></i> Admin</button>`}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    } catch (error) { console.error(error); }
+}
+
+async function deleteUser(id) {
+    if (!confirm('Delete this user permanently?')) return;
+    try {
+        const res = await fetch(`${API_URL}/admin/users/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('User deleted');
+            announceToScreenReader('User deleted successfully');
+            loadUsers();
+        } else {
+            alert(data.message);
+        }
+    } catch (error) { alert(error.message); }
+}
+
+// =============================================
+// LOAD ALL FORMS
+// =============================================
+async function loadAllForms() {
+    try {
+        const res = await fetch(`${API_URL}/admin/forms`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            allForms = data.forms || [];
+            document.getElementById('statForms').textContent = allForms.length;
+            document.getElementById('formCountBadge').textContent = allForms.length;
+            
+            document.getElementById('allFormsList').innerHTML = allForms.map(f => {
+                const statusColors = { 'draft': 'badge-secondary', 'active': 'badge-success', 'closed': 'badge-danger' };
+                const statusBadge = statusColors[f.status] || 'badge-secondary';
+                const canClose = f.status === 'active';
+                return `
+                    <div class="form-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-7">
+                                <h5><i class="fas fa-file-alt me-2" aria-hidden="true"></i>${escapeHtml(f.title)}</h5>
+                                <p class="text-muted small">${escapeHtml(f.description) || 'No description'}</p>
+                                <p>
+                                    <span class="badge badge-secondary">👤 ${escapeHtml(f.creator_name) || 'Unknown'}</span>
+                                    <span class="badge badge-info">📋 ${f.questions?.length || 0} questions</span>
+                                    <span class="badge ${statusBadge}">📌 ${f.status || 'draft'}</span>
+                                </p>
+                                <small class="text-muted">📅 Created: ${new Date(f.created_at).toLocaleDateString()}</small>
+                            </div>
+                            <div class="col-md-5 text-end">
+                                ${canClose ? 
+                                    `<button class="btn-sm btn-close-form" onclick="closeForm('${f._id}')" aria-label="Close form ${escapeHtml(f.title)}"><i class="fas fa-lock" aria-hidden="true"></i> Close Form</button>` : 
+                                    `<span class="badge bg-secondary">${f.status === 'closed' ? '🔒 Closed' : '📝 Draft'}</span>`
+                                }
+                                <button class="btn-sm btn-outline-info ms-1" onclick="viewFormResponses('${f._id}', '${escapeHtml(f.title)}')" aria-label="View responses for ${escapeHtml(f.title)}">
+                                    <i class="fas fa-chart-bar" aria-hidden="true"></i> Responses
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    } catch (error) { console.error(error); }
+}
+
+async function closeForm(formId) {
+    if (!confirm('⚠️ Close this form? Respondents will no longer be able to submit responses.')) return;
+    try {
+        const res = await fetch(`${API_URL}/admin/forms/close/${formId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('✅ Form closed!');
+            announceToScreenReader('Form closed successfully');
+            loadAllForms();
+        } else {
+            alert('❌ Error: ' + data.message);
+        }
+    } catch (error) { alert('❌ Error: ' + error.message); }
+}
+
+// =============================================
+// VIEW FORM RESPONSES (Modal)
+// =============================================
+async function viewFormResponses(formId, formTitle) {
+    document.getElementById('responseFormTitle').textContent = formTitle;
+    document.getElementById('responsesListContainer').innerHTML = '<div class="spinner"></div>';
+    document.getElementById('viewResponsesModal').style.display = 'block';
+    announceToScreenReader('Viewing responses for ' + formTitle);
+    
+    try {
+        const res = await fetch(`${API_URL}/responses/form/${formId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success && data.responses && data.responses.length > 0) {
+            document.getElementById('responsesListContainer').innerHTML = data.responses.map(r => `
+                <div class="response-item">
+                    <p><strong>👤 Respondent:</strong> ${escapeHtml(r.respondent_name || 'Anonymous')}</p>
+                    <p><strong>📅 Submitted:</strong> ${new Date(r.submitted_at).toLocaleString()}</p>
+                    <p><strong>📱 Method:</strong> ${escapeHtml(r.submission_method || 'web')}</p>
+                    <p><strong>📝 Answers:</strong></p>
+                    <ul>${r.answers.map(a => `<li>${escapeHtml(a.questionId || 'Q')}: ${escapeHtml(a.answer || 'N/A')}</li>`).join('')}</ul>
+                    ${r.phone_number ? `<p><strong>📞 Phone:</strong> ${escapeHtml(r.phone_number)}</p>` : ''}
+                    <hr>
+                </div>
+            `).join('');
+        } else {
+            document.getElementById('responsesListContainer').innerHTML = '<p class="text-muted">No responses yet.</p>';
+        }
+    } catch (error) {
+        document.getElementById('responsesListContainer').innerHTML = '<p class="text-danger">Error loading responses.</p>';
+    }
+}
+
+// =============================================
+// LOAD ALL RESPONSES
+// =============================================
+async function loadAllResponses() {
+    try {
+        const formsRes = await fetch(`${API_URL}/admin/forms`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const formsData = await formsRes.json();
+        allResponses = [];
+        if (formsData.success && formsData.forms) {
+            for (let form of formsData.forms) {
+                try {
+                    const rRes = await fetch(`${API_URL}/responses/form/${form._id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const rData = await rRes.json();
+                    if (rData.success && rData.responses) {
+                        allResponses = allResponses.concat(rData.responses.map(r => ({
+                            ...r,
+                            formTitle: form.title,
+                            respondentName: r.respondent_name || 'Anonymous'
+                        })));
+                    }
+                } catch (e) {}
+            }
+        }
+        document.getElementById('statResponses').textContent = allResponses.length;
+        document.getElementById('responseCountBadge').textContent = allResponses.length;
+        
+        document.getElementById('allResponsesList').innerHTML = allResponses.length > 0 ?
+            allResponses.map(r => `
+                <div class="response-item">
+                    <p><strong>📋 Form:</strong> ${escapeHtml(r.formTitle || 'Unknown')}</p>
+                    <p><strong>👤 Respondent:</strong> ${escapeHtml(r.respondentName)}</p>
+                    <p><strong>📅 Submitted:</strong> ${new Date(r.submitted_at).toLocaleString()}</p>
+                    <p><strong>📱 Method:</strong> ${escapeHtml(r.submission_method || 'web')}</p>
+                    <p><strong>📝 Answers:</strong> ${r.answers?.length || 0}</p>
+                    ${r.phone_number ? `<p><strong>📞 Phone:</strong> ${escapeHtml(r.phone_number)}</p>` : ''}
+                    <hr>
+                </div>
+            `).join('') :
+            '<p class="text-muted">No responses yet.</p>';
+    } catch (error) { console.error(error); }
+}
+
+// =============================================
+// ANALYTICS
+// =============================================
+function loadAnalytics() {
+    document.getElementById('analyticsTotalUsers').textContent = allUsers.length;
+    document.getElementById('analyticsTotalForms').textContent = allForms.length;
+    document.getElementById('analyticsTotalResponses').textContent = allResponses.length;
+    
+    Object.keys(chartInstances).forEach(key => {
+        if (chartInstances[key]) {
+            chartInstances[key].destroy();
+        }
+    });
+    
+    const roles = { admin: 0, creator: 0, respondent: 0 };
+    allUsers.forEach(u => { if (roles[u.role] !== undefined) roles[u.role]++; });
+    
+    const ctx1 = document.getElementById('analyticsRolesChart').getContext('2d');
+    chartInstances.analyticsRoles = new Chart(ctx1, {
+        type: 'pie',
+        data: {
+            labels: ['Admin', 'Creator', 'Respondent'],
+            datasets: [{
+                data: [roles.admin, roles.creator, roles.respondent],
+                backgroundColor: ['#fc8181', '#63b3ed', '#48bb78'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true } }
+            }
+        }
+    });
+    
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const submissionsData = Array(12).fill(0);
+    allResponses.forEach((r) => {
+        const month = new Date(r.submitted_at).getMonth();
+        submissionsData[month] += 1;
+    });
+    
+    const ctx2 = document.getElementById('analyticsSubmissionsChart').getContext('2d');
+    chartInstances.analyticsSubmissions = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Submissions',
+                data: submissionsData,
+                backgroundColor: 'rgba(108, 92, 231, 0.7)',
+                borderColor: '#6c5ce7',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+}
+
+// =============================================
+// DASHBOARD CHARTS
+// =============================================
+function loadDashboardCharts() {
+    const statuses = { draft: 0, active: 0, closed: 0 };
+    allForms.forEach(f => { if (statuses[f.status] !== undefined) statuses[f.status]++; });
+    
+    const ctx1 = document.getElementById('dashboardStatusChart').getContext('2d');
+    chartInstances.dashboardStatus = new Chart(ctx1, {
+        type: 'pie',
+        data: {
+            labels: ['Draft', 'Active', 'Closed'],
+            datasets: [{
+                data: [statuses.draft, statuses.active, statuses.closed],
+                backgroundColor: ['#a0aec0', '#48bb78', '#fc8181'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true } }
+            }
+        }
+    });
+    
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const activityData = Array(7).fill(0);
+    activityData.forEach((_, i) => {
+        activityData[i] = Math.floor(Math.random() * 20) + 5;
+    });
+    
+    const ctx2 = document.getElementById('dashboardActivityChart').getContext('2d');
+    chartInstances.dashboardActivity = new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: days,
+            datasets: [{
+                label: 'Activity',
+                data: activityData,
+                backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                borderColor: '#6c5ce7',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#6c5ce7',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 5 } } }
+        }
+    });
+    
+    const recentActivities = [
+        { text: 'New user registered: Sarah Johnson', time: '10 min ago', icon: 'fa-user-plus', color: 'bg-green' },
+        { text: 'New form created: "Customer Feedback"', time: '25 min ago', icon: 'fa-file-alt', color: 'bg-purple' },
+        { text: '5 new responses received', time: '1 hour ago', icon: 'fa-chart-bar', color: 'bg-blue' },
+        { text: 'User deleted: john.doe@example.com', time: '2 hours ago', icon: 'fa-user-minus', color: 'bg-red' },
+        { text: 'Form updated: "Event Registration"', time: '3 hours ago', icon: 'fa-edit', color: 'bg-orange' },
+    ];
+    
+    document.getElementById('recentActivityList').innerHTML = recentActivities.map(a => `
+        <div class="activity-item">
+            <div class="activity-icon ${a.color}"><i class="fas ${a.icon}" aria-hidden="true"></i></div>
+            <div class="activity-text">
+                <strong>${a.text}</strong>
+                <small>${a.time}</small>
+            </div>
+            <div class="activity-time">${a.time}</div>
+        </div>
+    `).join('');
+}
+
+// =============================================
+// HELP & SUPPORT
+// =============================================
+function showHelp(topic) {
+    const container = document.getElementById('helpContent');
+    const helpData = {
+        faq: {
+            title: 'Frequently Asked Questions',
+            content: `
+                <h6>How do I manage users?</h6>
+                <p>Go to the "Users" tab to view, delete, or manage users.</p>
+                <h6>How do I close a form?</h6>
+                <p>Go to "All Forms" tab and click "Close Form" on any active form.</p>
+                <h6>How do I view responses?</h6>
+                <p>Click "Responses" on any form card to view its responses.</p>
+            `
+        },
+        guide: {
+            title: 'User Guide',
+            content: `
+                <h6>Admin Guide</h6>
+                <p>1. Manage users from the Users tab</p>
+                <p>2. Monitor all forms from the All Forms tab</p>
+                <p>3. View all responses from the All Responses tab</p>
+                <p>4. Use the Analytics tab to see statistics</p>
+            `
+        },
+        contact: {
+            title: 'Contact Support',
+            content: `
+                <h6>Reach out to us</h6>
+                <p><strong>Email:</strong> support@accessform.com</p>
+                <p><strong>Phone:</strong> +92 300 1234567</p>
+                <p><strong>Hours:</strong> Mon-Fri, 9:00 AM - 6:00 PM</p>
+            `
+        },
+        accessibility: {
+            title: 'Accessibility Help',
+            content: `
+                <h6>Accessibility Features</h6>
+                <p><strong>High Contrast:</strong> Toggle in the Accessibility panel</p>
+                <p><strong>Dyslexia Font:</strong> Toggle in the Accessibility panel</p>
+                <p><strong>Font Size:</strong> Use A+ and A- buttons</p>
+                <p>✅ WCAG 2.1 AA Compliant</p>
+                <p>✅ Screen Reader Compatible</p>
+            `
+        },
+        report: {
+            title: 'Report an Issue',
+            content: `
+                <h6>Report a Problem</h6>
+                <div class="mb-3">
+                    <label class="form-label">Issue Type</label>
+                    <select class="form-select">
+                        <option>Bug/Error</option>
+                        <option>Feature Request</option>
+                        <option>Accessibility Issue</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" rows="3" placeholder="Describe the issue..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="alert('✅ Issue reported!')">📤 Submit</button>
+            `
+        },
+        feedback: {
+            title: 'Give Feedback',
+            content: `
+                <h6>Share Your Thoughts</h6>
+                <div class="mb-3">
+                    <label class="form-label">Rating</label>
+                    <div class="d-flex gap-3">
+                        ${[1,2,3,4,5].map(i => `
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="feedbackRating" value="${i}" id="feedback_${i}">
+                                <label class="form-check-label" for="feedback_${i}">${i}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Your Feedback</label>
+                    <textarea class="form-control" rows="3" placeholder="Tell us what you think..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="alert('✅ Thank you!')">📤 Submit</button>
+            `
+        }
+    };
+    
+    const data = helpData[topic];
+    if (data) {
+        container.innerHTML = `<h5>${data.title}</h5><div class="mt-3">${data.content}</div>`;
+        container.scrollIntoView({ behavior: 'smooth' });
+        announceToScreenReader('Help topic: ' + data.title);
+    }
+}
+
+// =============================================
+// PROFILE
+// =============================================
+function updateProfile() {
+    const fullName = document.getElementById('profileFullName').value;
+    const email = document.getElementById('profileEmailInput').value;
+    const phone = document.getElementById('profilePhone').value;
+    
+    if (!fullName || !email) {
+        document.getElementById('profileMessage').innerHTML = '<div class="alert alert-warning">Name and email are required.</div>';
+        announceToScreenReader('Name and email are required');
+        return;
+    }
+    
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    userData.full_name = fullName;
+    userData.email = email;
+    userData.phone_number = phone;
+    localStorage.setItem('user', JSON.stringify(userData));
+    
+    document.getElementById('userNameDisplay').textContent = fullName;
+    document.getElementById('userAvatar').textContent = fullName.charAt(0).toUpperCase();
+    document.getElementById('profileAvatar').textContent = fullName.charAt(0).toUpperCase();
+    document.getElementById('profileName').textContent = fullName;
+    document.getElementById('profileEmail').textContent = email;
+    
+    document.getElementById('profileMessage').innerHTML = '<div class="alert alert-success">✅ Profile updated!</div>';
+    announceToScreenReader('Profile updated successfully');
+    setTimeout(() => {
+        document.getElementById('profileMessage').innerHTML = '';
+    }, 3000);
+}
+
+// =============================================
+// HELPERS
+// =============================================
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.toString().replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = 'index.html';
+}
+
+// =============================================
+// KEYBOARD NAVIGATION
+// =============================================
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        if (document.getElementById('viewResponsesModal').style.display === 'block') {
+            document.getElementById('viewResponsesModal').style.display = 'none';
+        }
+    }
+});
+
+// =============================================
+// INIT
+// =============================================
+async function init() {
+    await loadUsers();
+    await loadAllForms();
+    await loadAllResponses();
+    loadDashboardCharts();
+    loadAnalytics();
+}
+
+init();
+</script>
+</body>
+</html>

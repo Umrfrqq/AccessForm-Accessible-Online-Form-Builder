@@ -1,0 +1,113 @@
+# AccessForm - Accessible Survey Builder
+
+
+## Project Overview
+AccessForm is a web-based survey builder application designed with accessibility at its core. It ensures that surveys are usable by everyone, including people with visual, hearing, motor, or cognitive impairments. The application follows **WCAG 2.1 guidelines** and includes features like voice input, SMS notifications, high contrast mode, and dyslexia-friendly fonts.
+
+## Features Implemented
+
+### User Roles
+- **Admin Panel:** Manage users, monitor surveys, oversee accessibility compliance
+- **Form Creator Panel:** Build surveys with drag-and-drop, customize accessibility settings
+- **Respondent Panel:** Complete surveys via web, voice, or SMS
+
+### Form Creation
+- Drag-and-drop form builder
+- Multiple question types: Text, Email, Number, Checkbox, Radio, Dropdown, Text Area
+- Form preview mode
+- Form activation for respondents
+
+### Accessibility Features
+- ✅ Keyboard-only navigation
+- ✅ Screen reader compatibility (ARIA attributes)
+- ✅ High-contrast mode toggle
+- ✅ Dyslexia-friendly font toggle
+- ✅ Font size controls (A+ / A-)
+- ✅ Skip navigation links
+- ✅ WCAG 2.1 AA compliant
+
+### Response Collection
+- Web-based responses
+- Voice-based responses (speech-to-text using Web Speech API)
+- SMS-based responses (Twilio integration)
+
+### Analytics and Reporting
+- Accessible dashboard for form creators
+- Response statistics and individual response viewing
+- Export in multiple formats (CSV, Excel, PDF)
+
+## Technology Stack
+
+| Category | Technologies |
+|----------|--------------|
+| Frontend | HTML5, CSS3, JavaScript, Bootstrap 5, Font Awesome |
+| Backend | Node.js, Express.js, JWT, bcryptjs |
+| Database | MongoDB, Mongoose ODM |
+| APIs | Web Speech API, Twilio SMS API |
+| Accessibility | ARIA attributes, WCAG 2.1 guidelines |
+| Version Control | Git, GitHub |
+
+
+## Setup Instructions
+
+### Prerequisites
+- Node.js (v18 or higher)
+- MongoDB (local or Atlas)
+- Twilio account (for SMS feature)
+
+### Installation
+
+## Install backend dependencies
+
+cd backend-mongodb
+npm install
+
+
+## Configure environment variables
+
+## Create a .env file in the backend-mongodb folder:
+
+
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/accessform
+JWT_SECRET=your_jwt_secret_key
+
+## Start MongoDB
+
+Open MongoDB Compass or run mongod service
+
+## Start the backend server
+
+/bash
+
+node server.js
+
+## Start the frontend
+
+Open frontend/index.html with Live Server (VS Code)
+
+## Open the application
+
+Frontend: http://localhost:5500
+
+Backend API: http://localhost:5000/api
+
+
+
+## API Endpoints
+Method	Endpoint	Description
+POST	/api/auth/register	Register new user
+POST	/api/auth/login	Login user
+GET	/api/forms	Get all forms
+POST	/api/forms	Create new form
+PUT	/api/forms/:id	Update form
+DELETE	/api/forms/:id	Delete form
+POST	/api/responses/submit	Submit response
+GET	/api/responses/form/:id	Get responses
+
+## WCAG 2.1 Compliance
+Principle	Implementation
+Perceivable	High contrast mode, alt text for images
+Operable	Keyboard navigation, focus indicators, skip links
+Understandable	Clear labels, error messages, consistent navigation
+Robust	ARIA attributes, semantic HTML

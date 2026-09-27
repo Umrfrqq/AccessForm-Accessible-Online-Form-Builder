@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Editor - AccessForm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *:focus { outline: 3px solid #005fcc !important; outline-offset: 2px !important; }
+        .skip-link { position: absolute; top: -40px; left: 0; background: #000; color: white; padding: 8px; z-index: 100; text-decoration: none; }
+        .skip-link:focus { top: 0; }
+        
+        .field-palette { background-color: #f8f9fa; border-radius: 8px; padding: 15px; min-height: 500px; }
+        .field-item { cursor: move; padding: 12px; margin-bottom: 10px; background: white; border: 1px solid #dee2e6; border-radius: 6px; transition: all 0.2s; }
+        .field-item:hover { background-color: #e9ecef; transform: translateX(2px); border-color: #0d6efd; }
+        .field-item.dragging { opacity: 0.5; }
+        
+        .form-preview-area { 
+            min-height: 500px; 
+            border: 2px dashed #dee2e6; 
+            border-radius: 8px; 
+            padding: 20px; 
+            background-color: #fafafa; 
+        }
+        .form-preview-area.drag-over { border-color: #0d6efd; background-color: #f0f7ff; }
+        
+        .question-card { 
+            border-left: 4px solid #0d6efd; 
+            margin-bottom: 15px; 
+            padding: 15px; 
+            background: white; 
+            border-radius: 4px; 
+            position: relative; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .question-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .question-card .question-number {
+            color: #6c757d;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .delete-field { 
+            position: absolute; 
+            top: 10px; 
+            right: 10px; 
+            color: #dc3545; 
+            cursor: pointer; 
+            z-index: 10;
+            background: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #dc3545;
+            font-size: 12px;
+        }
+        .delete-field:hover { background: #dc3545; color: white; }
+        
+        .voice-btn { 
+            background: #6c5ce7; 
+            color: white; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            min-width: 60px;
+        }
+        .voice-btn:hover { background: #5a4bd1; }
+        .voice-btn.listening { 
+            background: #00b894; 
+            animation: pulse 1.2s infinite; 
+        }
+        .voice-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        @keyframes pulse { 
+            0% { opacity: 1; } 
+            50% { opacity: 0.6; } 
+            100% { opacity: 1; } 
+        }
+        
+        .property-panel { background-color: #f8f9fa; border-radius: 8px; padding: 15px; min-height: 500px; max-height: 700px; overflow-y: auto; }
+        .input-group { display: flex; gap: 10px; align-items: center; }
+        .input-group input, .input-group textarea { flex: 1; }
+        .input-group .voice-btn { flex-shrink: 0; }
+        
+        .property-voice-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .property-voice-group input,
+        .property-voice-group textarea {
+            flex: 1;
+        }
+        .property-voice-group .voice-btn {
+            flex-shrink: 0;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            border-radius: 5px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .property-voice-group .voice-btn i {
+            font-size: 1rem;
+        }
+        
+        /* Options editor */
+        .options-editor {
+            margin-top: 10px;
+        }
+        .option-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 6px 10px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+        .option-row:hover {
+            background: #f8f9fa;
+        }
+        .option-row .option-index {
+            color: #6c757d;
+            font-weight: 600;
+            min-width: 24px;
+            font-size: 0.9rem;
+        }
+        .option-row input[type="text"] {
+            flex: 1;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 0.9rem;
+        }
+        .option-row input[type="text"]:focus {
+            border-color: #0d6efd;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+        .option-row .remove-option {
+            color: #dc3545;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: none;
+            background: transparent;
+        }
+        .option-row .remove-option:hover {
+            background: #dc3545;
+            color: white;
+        }
+        .add-option-btn {
+            margin-top: 8px;
+            width: 100%;
+        }
+        
+        /* Image field styles */
+        .image-display {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            background: #f8f9fa;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-display i {
+            font-size: 48px;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        .image-display img {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .image-display .image-alt-text {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        .image-edit-btn {
+            margin-top: 8px;
+        }
+        
+        .high-contrast { background-color: #000 !important; color: #fff !important; }
+        .high-contrast .card { background-color: #222 !important; color: #fff !important; }
+        .high-contrast .field-palette { background-color: #333 !important; }
+        .high-contrast .field-item { background-color: #444 !important; color: #fff !important; border-color: #fff !important; }
+        .high-contrast .question-card { background-color: #333 !important; }
+        .high-contrast .modal-content { background-color: #222 !important; color: #fff !important; }
+        .high-contrast .image-display { background-color: #444 !important; border-color: #fff !important; }
+        .high-contrast .option-row { background-color: #444 !important; border-color: #fff !important; }
+        
+        .dyslexia-mode { font-family: 'Comic Sans MS', 'OpenDyslexic', Arial, sans-serif !important; line-height: 1.6; letter-spacing: 0.5px; }
+        
+        .rating-display { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .rating-display .star { 
+            font-size: 24px; 
+            color: #ccc; 
+            cursor: default;
+        }
+        .rating-display .star.active { color: #f1c40f; }
+        .rating-labels { margin-top: 5px; font-size: 13px; color: #6c757d; }
+        
+        .field-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .field-badge.text { background: #e3f2fd; color: #0d47a1; }
+        .field-badge.email { background: #fce4ec; color: #b71c1c; }
+        .field-badge.number { background: #e8f5e9; color: #1b5e20; }
+        .field-badge.checkbox { background: #fff3e0; color: #e65100; }
+        .field-badge.radio { background: #f3e5f5; color: #4a148c; }
+        .field-badge.dropdown { background: #e0f7fa; color: #006064; }
+        .field-badge.textarea { background: #f1f8e9; color: #33691e; }
+        .field-badge.rating { background: #fff8e1; color: #f57f17; }
+        .field-badge.image { background: #e8eaf6; color: #1a237e; }
+        .field-badge.voice { background: #fce4ec; color: #880e4f; }
+        
+        .question-options {
+            margin-top: 8px;
+            padding-left: 20px;
+        }
+        .question-options .option-item {
+            padding: 4px 0;
+            color: #495057;
+        }
+        .question-options .option-item i {
+            margin-right: 8px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Accessibility Toolbar -->
+    <div class="bg-light py-2" role="region" aria-label="Accessibility options">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <span class="me-2"><i class="fas fa-universal-access"></i> Accessibility:</span>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleHighContrast()">High Contrast</button>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleDyslexiaMode()">Dyslexia Font</button>
+                </div>
+                <div class="col-auto ms-auto">
+                    <span class="me-2">Editing: <strong id="formTitleDisplay">New Form</strong></span>
+                    <button class="btn btn-sm btn-outline-primary" onclick="saveForm()">Save Form</button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="goBack()">Back to Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <!-- Left Sidebar - Field Palette -->
+            <div class="col-md-3">
+                <div class="field-palette">
+                    <h5><i class="fas fa-palette me-2"></i>Field Types (Drag & Drop)</h5>
+                    <hr>
+                    <div class="field-item" draggable="true" data-field-type="text">
+                        <i class="fas fa-font me-2"></i>Text Input
+                    </div>
+                    <div class="field-item" draggable="true" data-field-type="email">
+                        <i class="fas fa-envelope me-2"></i>Email
+                    </div>
+                    <div class="field-item" draggable="true" data-field-type="number">
+                        <i class="fas fa-calculator me-2"></i>Number
+                    </div>
+                    <div class="field-item" draggable="true" data-field-type="checkbox">
+                        <i class="fas fa-check-square me-2"></i>Checkbox
+                    </div>
+                    <div class="field-item" draggable="true" data-field-type="radio">
+                        <i class="fas fa-dot-circle me-2"></i>Radio Button
+                    </div>
+                    <div class="field-item" draggable="true" data-field-type="dropdown">
+                        <i class="fas fa-caret-down me-2"></i>Dropdown
+                    </div>
+                    <div class="field-item" draggable="true" data-field-type="textarea">
+                        <i class="fas fa-paragraph me-2"></i>Text Area
+                    </div>
+                    <div class="field-item" draggable="true" data-field-type="rating" style="border-color: #6c5ce7; background: #f0f0ff;">
+                        <i class="fas fa-star me-2" style="color: #f1c40f;"></i>Rating Scale
+                    </div>
+                    <hr>
+                    <h6><i class="fas fa-universal-access me-2"></i>Accessibility Fields</h6>
+                    <div class="field-item" draggable="true" data-field-type="image">
+                        <i class="fas fa-image me-2"></i>Image with Alt Text
+                    </div>
+                    <div class="field-item" draggable="true" data-field-type="voice">
+                        <i class="fas fa-microphone me-2"></i>Voice Response
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Center - Form Builder Area (QUESTIONS ONLY) -->
+            <main id="main-content" class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-light d-flex justify-content-between">
+                        <h5 class="mb-0">Form Builder - Questions</h5>
+                        <span class="badge bg-primary">WCAG 2.1 AA Compliant</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-preview-area" id="formPreviewArea">
+                            <div class="text-center text-muted py-5" id="emptyMessage">
+                                <i class="fas fa-arrow-left fa-3x mb-3"></i>
+                                <p>Drag and drop fields from the left panel</p>
+                                <p class="small">This is how questions will appear to respondents</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            
+            <!-- Right Sidebar - Field Properties -->
+            <div class="col-md-3">
+                <div class="property-panel">
+                    <h5><i class="fas fa-sliders-h me-2"></i>Field Properties</h5>
+                    <p class="small text-muted">Click a question to edit its properties</p>
+                    <div id="propertyContent">
+                        <div class="alert alert-info">Select a question to edit</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'index.html';
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentFormId = urlParams.get('id');
+        let questionCounter = 1;
+        let selectedFieldId = null;
+
+        // Store options for each field
+        const fieldOptions = {};
+
+        // =============================================
+        // DRAG AND DROP
+        // =============================================
+        const draggables = document.querySelectorAll('.field-item');
+        const dropZone = document.getElementById('formPreviewArea');
+        
+        draggables.forEach(d => {
+            d.addEventListener('dragstart', handleDragStart);
+            d.addEventListener('dragend', handleDragEnd);
+        });
+        
+        dropZone.addEventListener('dragover', handleDragOver);
+        dropZone.addEventListener('dragleave', handleDragLeave);
+        dropZone.addEventListener('drop', handleDrop);
+
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.fieldType);
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            dropZone.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const fieldType = e.dataTransfer.getData('text/plain');
+            addField(fieldType);
+        }
+
+        // =============================================
+        // ADD FIELD - QUESTIONS ONLY
+        // =============================================
+        function addField(type, existingOptions) {
+            const previewArea = document.getElementById('formPreviewArea');
+            const emptyMessage = document.getElementById('emptyMessage');
+            if (emptyMessage) emptyMessage.style.display = 'none';
+            
+            const fieldId = 'field_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+            let html = '';
+
+            const labelText = type.charAt(0).toUpperCase() + type.slice(1) + ' Question ' + questionCounter;
+            const badgeClass = type;
+            const questionNum = questionCounter;
+
+            // Default options for checkbox, radio, dropdown
+            let options = existingOptions || ['Option 1', 'Option 2', 'Option 3'];
+            if (type === 'checkbox' || type === 'radio' || type === 'dropdown') {
+                fieldOptions[fieldId] = options;
+            }
+
+            switch(type) {
+                case 'text':
+                    html = `
+                        <div class="question-card" data-field-id="${fieldId}" data-type="text" onclick="selectField('${fieldId}')">
+                            <i class="fas fa-times delete-field" onclick="event.stopPropagation(); deleteField('${fieldId}')" title="Delete question"></i>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="question-number">Q${questionNum}.</span>
+                                    <label class="form-label fw-bold">${labelText}</label>
+                                </div>
+                                <span class="field-badge ${badgeClass}">${type}</span>
+                            </div>
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-font"></i> Short text answer
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'number':
+                    html = `
+                        <div class="question-card" data-field-id="${fieldId}" data-type="number" onclick="selectField('${fieldId}')">
+                            <i class="fas fa-times delete-field" onclick="event.stopPropagation(); deleteField('${fieldId}')" title="Delete question"></i>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="question-number">Q${questionNum}.</span>
+                                    <label class="form-label fw-bold">${labelText}</label>
+                                </div>
+                                <span class="field-badge ${badgeClass}">${type}</span>
+                            </div>
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-calculator"></i> Numeric answer
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'email':
+                    html = `
+                        <div class="question-card" data-field-id="${fieldId}" data-type="email" onclick="selectField('${fieldId}')">
+                            <i class="fas fa-times delete-field" onclick="event.stopPropagation(); deleteField('${fieldId}')" title="Delete question"></i>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="question-number">Q${questionNum}.</span>
+                                    <label class="form-label fw-bold">${labelText}</label>
+                                </div>
+                                <span class="field-badge ${badgeClass}">${type}</span>
+                            </div>
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-envelope"></i> Email address answer
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'checkbox':
+                    const checkboxOptions = options || ['Option 1', 'Option 2', 'Option 3'];
+                    html = `
+                        <div class="question-card" data-field-id="${fieldId}" data-type="checkbox" onclick="selectField('${fieldId}')">
+                            <i class="fas fa-times delete-field" onclick="event.stopPropagation(); deleteField('${fieldId}')" title="Delete question"></i>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="question-number">Q${questionNum}.</span>
+                                    <label class="form-label fw-bold">${labelText}</label>
+                                </div>
+                                <span class="field-badge ${badgeClass}">${type}</span>
+                            </div>
+                            <div class="question-options" id="optionsDisplay_${fieldId}">
+                                ${checkboxOptions.map(opt => `
+                                    <div class="option-item"><i class="far fa-square"></i> ${opt}</div>
+                                `).join('')}
+                            </div>
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-check-square"></i> Select all that apply
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'radio':
+                    const radioOptions = options || ['Option 1', 'Option 2', 'Option 3'];
+                    html = `
+                        <div class="question-card" data-field-id="${fieldId}" data-type="radio" onclick="selectField('${fieldId}')">
+                            <i class="fas fa-times delete-field" onclick="event.stopPropagation(); deleteField('${fieldId}')" title="Delete question"></i>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="question-number">Q${questionNum}.</span>
+                                    <label class="form-label fw-bold">${labelText}</label>
+                                </div>
+                                <span class="field-badge ${badgeClass}">${type}</span>
+                            </div>
+                            <div class="question-options" id="optionsDisplay_${fieldId}">
+                                ${radioOptions.map(opt => `
+                                    <div class="option-item"><i class="far fa-circle"></i> ${opt}</div>
+                                `).join('')}
+                            </div>
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-dot-circle"></i> Select one option
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'dropdown':
+                    const dropdownOptions = options || ['Option 1', 'Option 2', 'Option 3'];
+                    html = `
+                        <div class="question-card" data-field-id="${fieldId}" data-type="dropdown" onclick="selectField('${fieldId}')">
+                            <i class="fas fa-times delete-field" onclick="event.stopPropagation(); deleteField('${fieldId}')" title="Delete question"></i>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="question-number">Q${questionNum}.</span>
+                                    <label class="form-label fw-bold">${labelText}</label>
+                                </div>
+                                <span class="field-badge ${badgeClass}">${type}</span>
+                            </div>
+                            <div class="question-options" id="optionsDisplay_${fieldId}">
+                                ${dropdownOptions.map(opt => `
+                                    <div class="option-item"><i class="fas fa-caret-right"></i> ${opt}</div>
+                                `).join('')}
+                            </div>
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-caret-down"></i> Choose from dropdown
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'textarea':
+                    html = `
+                        <div class="question-card" data-field-id="${fieldId}" data-type="textarea" onclick="selectField('${fieldId}')">
+                            <i class="fas fa-times delete-field" onclick="event.stopPropagation(); deleteField('${fieldId}')" title="Delete question"></i>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="question-number">Q${questionNum}.</span>
+                                    <label class="form-label fw-bold">${labelText}</label>
+                                </div>
+                                <span class="field-badge ${badgeClass}">${type}</span>
+                            </div>
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-paragraph"></i> Long text / paragraph answer
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'rating':
+                    html = `
+                        <div class="question-card" data-field-id="${fieldId}" data-type="rating" onclick="selectField('${fieldId}')">
+                            <i class="fas fa-times delete-field" onclick="event.stopPropagation(); deleteField('${fieldId}')" title="Delete question"></i>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="question-number">Q${questionNum}.</span>
+                                    <label class="form-label fw-bold">${labelText}</label>
+                                </div>
+                                <span class="field-badge ${badgeClass}">${type}</span>
+                            </div>
+                            <div class="rating-display" id="ratingDisplay_${fieldId}">
+                                <span class="star active">★</span>
+                                <span class="star active">★</span>
+                                <span class="star active">★</span>
+                                <span class="star">★</span>
+                                <span class="star">★</span>
+                            </div>
+                            <div class="rating-labels d-flex justify-content-between">
+                                <small class="text-muted">Poor</small>
+                                <small class="text-muted">Excellent</small>
+                            </div>
+                            <input type="hidden" id="ratingMax_${fieldId}" value="5">
+                            <input type="hidden" id="ratingMinLabel_${fieldId}" value="Poor">
+                            <input type="hidden" id="ratingMaxLabel_${fieldId}" value="Excellent">
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-star" style="color: #f1c40f;"></i> Rating scale
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'image':
+                    html = `
+                        <div class="question-card" data-field-id="${fieldId}" data-type="image" onclick="selectField('${fieldId}')">
+                            <i class="fas fa-times delete-field" onclick="event.stopPropagation(); deleteField('${fieldId}')" title="Delete question"></i>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="question-number">Q${questionNum}.</span>
+                                    <label class="form-label fw-bold">${labelText}</label>
+                                </div>
+                                <span class="field-badge ${badgeClass}">${type}</span>
+                            </div>
+                            <div class="image-display" id="imageContainer_${fieldId}">
+                                <i class="fas fa-image"></i>
+                                <p class="image-alt-text">📝 No image uploaded yet</p>
+                                <div class="image-edit-btn">
+                                    <input type="file" accept="image/*" id="imageUpload_${fieldId}" style="display:none;" onchange="handleImageUpload('${fieldId}', this)">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); document.getElementById('imageUpload_${fieldId}').click()">
+                                        <i class="fas fa-upload"></i> Add Image
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation(); openImageUrlDialog('${fieldId}')">
+                                        <i class="fas fa-link"></i> URL
+                                    </button>
+                                </div>
+                                <small class="text-muted mt-2 d-block">Alt text: <span id="altTextDisplay_${fieldId}">"Image: ${labelText}"</span></small>
+                            </div>
+                            <input type="hidden" id="imageData_${fieldId}" value="">
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-image"></i> Image displayed with alt text
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'voice':
+                    html = `
+                        <div class="question-card" data-field-id="${fieldId}" data-type="voice" onclick="selectField('${fieldId}')">
+                            <i class="fas fa-times delete-field" onclick="event.stopPropagation(); deleteField('${fieldId}')" title="Delete question"></i>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="question-number">Q${questionNum}.</span>
+                                    <label class="form-label fw-bold">${labelText}</label>
+                                </div>
+                                <span class="field-badge ${badgeClass}">${type}</span>
+                            </div>
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-microphone"></i> Voice response (speak your answer)
+                            </div>
+                        </div>
+                    `;
+                    break;
+                default:
+                    html = `
+                        <div class="question-card" data-field-id="${fieldId}" data-type="${type}" onclick="selectField('${fieldId}')">
+                            <i class="fas fa-times delete-field" onclick="event.stopPropagation(); deleteField('${fieldId}')" title="Delete question"></i>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="question-number">Q${questionNum}.</span>
+                                    <label class="form-label fw-bold">${labelText}</label>
+                                </div>
+                                <span class="field-badge ${badgeClass}">${type}</span>
+                            </div>
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-question-circle"></i> ${type} answer
+                            </div>
+                        </div>
+                    `;
+            }
+            
+            previewArea.insertAdjacentHTML('beforeend', html);
+            questionCounter++;
+        }
+
+        // =============================================
+        // OPTIONS MANAGEMENT
+        // =============================================
+        function updateOptions(fieldId, options) {
+            fieldOptions[fieldId] = options;
+            
+            // Update the display in the question card
+            const displayDiv = document.getElementById('optionsDisplay_' + fieldId);
+            if (!displayDiv) return;
+            
+            const field = document.querySelector(`[data-field-id="${fieldId}"]`);
+            const type = field?.dataset.type;
+            
+            let icon = 'far fa-square';
+            if (type === 'radio') icon = 'far fa-circle';
+            if (type === 'dropdown') icon = 'fas fa-caret-right';
+            
+            displayDiv.innerHTML = options.map(opt => `
+                <div class="option-item"><i class="${icon}"></i> ${opt}</div>
+            `).join('');
+        }
+
+        function addOption(fieldId) {
+            const options = fieldOptions[fieldId] || [];
+            const newOption = prompt('Enter new option text:', 'Option ' + (options.length + 1));
+            if (newOption && newOption.trim()) {
+                options.push(newOption.trim());
+                updateOptions(fieldId, options);
+                // Re-render properties to show updated list
+                const field = document.querySelector(`[data-field-id="${fieldId}"]`);
+                if (field) selectField(fieldId);
+            }
+        }
+
+        function removeOption(fieldId, index) {
+            const options = fieldOptions[fieldId] || [];
+            if (options.length <= 2) {
+                alert('You need at least 2 options.');
+                return;
+            }
+            if (confirm('Remove this option?')) {
+                options.splice(index, 1);
+                updateOptions(fieldId, options);
+                // Re-render properties
+                const field = document.querySelector(`[data-field-id="${fieldId}"]`);
+                if (field) selectField(fieldId);
+            }
+        }
+
+        function updateOptionText(fieldId, index, newText) {
+            const options = fieldOptions[fieldId] || [];
+            if (newText && newText.trim()) {
+                options[index] = newText.trim();
+                updateOptions(fieldId, options);
+            }
+        }
+
+        // =============================================
+        // IMAGE HANDLING FUNCTIONS
+        // =============================================
+        function handleImageUpload(fieldId, input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageData = e.target.result;
+                displayImage(fieldId, imageData);
+                document.getElementById('imageData_' + fieldId).value = imageData;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function openImageUrlDialog(fieldId) {
+            const url = prompt('Enter image URL (e.g., https://example.com/logo.png):');
+            if (url) {
+                try {
+                    new URL(url);
+                    displayImage(fieldId, url);
+                    document.getElementById('imageData_' + fieldId).value = url;
+                } catch(e) {
+                    alert('Please enter a valid URL.');
+                }
+            }
+        }
+
+        function displayImage(fieldId, imageSrc) {
+            const container = document.getElementById('imageContainer_' + fieldId);
+            if (!container) return;
+            
+            const altDisplay = document.getElementById('altTextDisplay_' + fieldId);
+            const altText = altDisplay ? altDisplay.textContent : 'Image';
+            
+            container.innerHTML = `
+                <div style="position: relative; display: inline-block;">
+                    <img src="${imageSrc}" alt="${altText}" style="max-width: 100%; max-height: 250px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <button class="btn btn-sm btn-danger" style="position: absolute; top: -8px; right: -8px; border-radius: 50%; width: 28px; height: 28px; padding: 0;" onclick="event.stopPropagation(); removeImage('${fieldId}')" title="Remove image">×</button>
+                </div>
+                <div style="margin-top: 10px;">
+                    <input type="file" accept="image/*" id="imageUpload_${fieldId}" style="display:none;" onchange="handleImageUpload('${fieldId}', this)">
+                    <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); document.getElementById('imageUpload_${fieldId}').click()">
+                        <i class="fas fa-upload"></i> Change
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation(); openImageUrlDialog('${fieldId}')">
+                        <i class="fas fa-link"></i> URL
+                    </button>
+                </div>
+                <small class="text-muted mt-2 d-block">Alt text: <span id="altTextDisplay_${fieldId}">${altText}</span></small>
+            `;
+        }
+
+        function removeImage(fieldId) {
+            if (confirm('Remove this image?')) {
+                const container = document.getElementById('imageContainer_' + fieldId);
+                if (!container) return;
+                
+                const field = document.querySelector(`[data-field-id="${fieldId}"]`);
+                const label = field?.querySelector('.form-label')?.textContent || 'Image';
+                
+                container.innerHTML = `
+                    <i class="fas fa-image"></i>
+                    <p class="image-alt-text">📝 No image uploaded yet</p>
+                    <div class="image-edit-btn">
+                        <input type="file" accept="image/*" id="imageUpload_${fieldId}" style="display:none;" onchange="handleImageUpload('${fieldId}', this)">
+                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); document.getElementById('imageUpload_${fieldId}').click()">
+                            <i class="fas fa-upload"></i> Add Image
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation(); openImageUrlDialog('${fieldId}')">
+                            <i class="fas fa-link"></i> URL
+                        </button>
+                    </div>
+                    <small class="text-muted mt-2 d-block">Alt text: <span id="altTextDisplay_${fieldId}">"Image: ${label}"</span></small>
+                `;
+                document.getElementById('imageData_' + fieldId).value = '';
+            }
+        }
+
+        // =============================================
+        // DELETE FIELD
+        // =============================================
+        function deleteField(fieldId) {
+            const field = document.querySelector(`[data-field-id="${fieldId}"]`);
+            if (field && confirm('Delete this question?')) {
+                delete fieldOptions[fieldId];
+                field.remove();
+                renumberQuestions();
+                if (document.querySelectorAll('.question-card').length === 0) {
+                    const emptyMsg = document.getElementById('emptyMessage');
+                    if (emptyMsg) emptyMsg.style.display = 'block';
+                }
+                document.getElementById('propertyContent').innerHTML = '<div class="alert alert-info">Select a question to edit</div>';
+            }
+        }
+
+        function renumberQuestions() {
+            const cards = document.querySelectorAll('.question-card');
+            cards.forEach((card, index) => {
+                const numSpan = card.querySelector('.question-number');
+                if (numSpan) {
+                    numSpan.textContent = `Q${index + 1}.`;
+                }
+            });
+        }
+
+        // =============================================
+        // SELECT FIELD - WITH OPTIONS EDITOR
+        // =============================================
+        function selectField(fieldId) {
+            const field = document.querySelector(`[data-field-id="${fieldId}"]`);
+            if (!field) return;
+            
+            selectedFieldId = fieldId;
+            
+            document.querySelectorAll('.question-card').forEach(c => c.style.borderLeftColor = '#0d6efd');
+            field.style.borderLeftColor = '#ffc107';
+            
+            const label = field.querySelector('.form-label')?.textContent || 'Question';
+            const type = field.dataset.type;
+            
+            let propertyHTML = `
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Question Text</label>
+                    <div class="property-voice-group">
+                        <input type="text" class="form-control" id="questionTextInput" value="${label.replace(/'/g, "\\'")}" onchange="updateLabel('${fieldId}', this.value)">
+                        <button type="button" class="voice-btn" onclick="startVoiceInput('questionTextInput', this)" title="Speak to type question text">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">Type or speak your question here</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Field Type</label>
+                    <input type="text" class="form-control" value="${type}" disabled>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="requiredCheck" onchange="toggleRequired('${fieldId}', this.checked)">
+                    <label class="form-check-label">Required field</label>
+                </div>
+            `;
+            
+            // Options editor for checkbox, radio, dropdown
+            if (type === 'checkbox' || type === 'radio' || type === 'dropdown') {
+                const options = fieldOptions[fieldId] || ['Option 1', 'Option 2', 'Option 3'];
+                fieldOptions[fieldId] = options;
+                
+                propertyHTML += `
+                    <hr>
+                    <h6><i class="fas fa-list me-2"></i>Options</h6>
+                    <div class="options-editor" id="optionsEditor_${fieldId}">
+                        ${options.map((opt, index) => `
+                            <div class="option-row">
+                                <span class="option-index">${index + 1}.</span>
+                                <input type="text" value="${opt.replace(/"/g, '&quot;')}" 
+                                       onchange="updateOptionText('${fieldId}', ${index}, this.value)"
+                                       placeholder="Option text">
+                                <button class="remove-option" onclick="removeOption('${fieldId}', ${index})" title="Remove option">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        `).join('')}
+                        <button class="btn btn-sm btn-outline-primary add-option-btn" onclick="addOption('${fieldId}')">
+                            <i class="fas fa-plus"></i> Add Option
+                        </button>
+                        <small class="text-muted d-block mt-2">Edit option text or add new options</small>
+                    </div>
+                `;
+            }
+            
+            // Image-specific properties
+            if (type === 'image') {
+                const imageData = document.getElementById('imageData_' + fieldId)?.value || '';
+                const altDisplay = document.getElementById('altTextDisplay_' + fieldId);
+                const altText = altDisplay ? altDisplay.textContent : label;
+                
+                propertyHTML += `
+                    <hr>
+                    <h6><i class="fas fa-image me-2"></i>Image Settings</h6>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Alternative Text (for screen readers)</label>
+                        <div class="property-voice-group">
+                            <input type="text" class="form-control" id="altTextInput" value="${altText.replace(/"/g, '&quot;')}" onchange="updateAltText('${fieldId}', this.value)">
+                            <button type="button" class="voice-btn" onclick="startVoiceInput('altTextInput', this)" title="Speak to type alt text">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Describe the image for visually impaired users</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Image Preview</label>
+                        ${imageData ? `<img src="${imageData}" style="max-width: 100%; max-height: 150px; border-radius: 4px; border: 1px solid #dee2e6;">` : '<p class="text-muted">No image uploaded</p>'}
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="document.getElementById('imageUpload_${fieldId}').click()">
+                                <i class="fas fa-upload"></i> Upload
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="openImageUrlDialog('${fieldId}')">
+                                <i class="fas fa-link"></i> URL
+                            </button>
+                            ${imageData ? `<button class="btn btn-sm btn-outline-danger" onclick="removeImage('${fieldId}')"><i class="fas fa-trash"></i> Remove</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Rating-specific properties
+            if (type === 'rating') {
+                const maxInput = field.querySelector('input[id^="ratingMax_"]');
+                const minLabelInput = field.querySelector('input[id^="ratingMinLabel_"]');
+                const maxLabelInput = field.querySelector('input[id^="ratingMaxLabel_"]');
+                const currentMax = maxInput ? parseInt(maxInput.value) : 5;
+                const currentMinLabel = minLabelInput ? minLabelInput.value : 'Poor';
+                const currentMaxLabel = maxLabelInput ? maxLabelInput.value : 'Excellent';
+                
+                propertyHTML += `
+                    <hr>
+                    <h6><i class="fas fa-star me-2" style="color: #f1c40f;"></i>Rating Settings</h6>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Number of Stars</label>
+                        <select class="form-select" id="ratingStarCount" onchange="updateRatingConfig('${fieldId}', this.value)">
+                            <option value="3" ${currentMax === 3 ? 'selected' : ''}>3 Stars</option>
+                            <option value="5" ${currentMax === 5 ? 'selected' : ''}>5 Stars</option>
+                            <option value="10" ${currentMax === 10 ? 'selected' : ''}>10 Stars</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Min Label</label>
+                        <div class="property-voice-group">
+                            <input type="text" class="form-control" id="ratingMinLabelInput" value="${currentMinLabel}" onchange="updateRatingLabels('${fieldId}', this.value, document.getElementById('ratingMaxLabelInput').value)">
+                            <button type="button" class="voice-btn" onclick="startVoiceInput('ratingMinLabelInput', this)" title="Speak to type min label">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Max Label</label>
+                        <div class="property-voice-group">
+                            <input type="text" class="form-control" id="ratingMaxLabelInput" value="${currentMaxLabel}" onchange="updateRatingLabels('${fieldId}', document.getElementById('ratingMinLabelInput').value, this.value)">
+                            <button type="button" class="voice-btn" onclick="startVoiceInput('ratingMaxLabelInput', this)" title="Speak to type max label">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('propertyContent').innerHTML = propertyHTML;
+        }
+
+        // =============================================
+        // UPDATE LABEL
+        // =============================================
+        function updateLabel(fieldId, newLabel) {
+            const field = document.querySelector(`[data-field-id="${fieldId}"]`);
+            const label = field.querySelector('.form-label');
+            if (label) {
+                label.textContent = newLabel;
+                const altDisplay = document.getElementById('altTextDisplay_' + fieldId);
+                if (altDisplay) {
+                    altDisplay.textContent = `"Image: ${newLabel}"`;
+                }
+            }
+        }
+
+        // =============================================
+        // UPDATE ALT TEXT
+        // =============================================
+        function updateAltText(fieldId, altText) {
+            const altDisplay = document.getElementById('altTextDisplay_' + fieldId);
+            if (altDisplay) {
+                altDisplay.textContent = `"${altText}"`;
+            }
+            const container = document.getElementById('imageContainer_' + fieldId);
+            const img = container?.querySelector('img');
+            if (img) {
+                img.alt = altText;
+            }
+        }
+
+        // =============================================
+        // TOGGLE REQUIRED
+        // =============================================
+        function toggleRequired(fieldId, isRequired) {
+            console.log('Required toggled:', fieldId, isRequired);
+        }
+
+        // =============================================
+        // RATING CONFIGURATION
+        // =============================================
+        function updateRatingConfig(fieldId, starCount) {
+            const field = document.querySelector(`[data-field-id="${fieldId}"]`);
+            if (!field) return;
+            
+            const display = field.querySelector('.rating-display');
+            const hiddenMax = field.querySelector('input[id^="ratingMax_"]');
+            
+            if (hiddenMax) hiddenMax.value = starCount;
+            
+            if (display) {
+                let html = '';
+                const count = parseInt(starCount);
+                for (let i = 1; i <= count; i++) {
+                    html += `<span class="star ${i <= 3 ? 'active' : ''}">★</span>`;
+                }
+                display.innerHTML = html;
+            }
+        }
+
+        function updateRatingLabels(fieldId, minLabel, maxLabel) {
+            const field = document.querySelector(`[data-field-id="${fieldId}"]`);
+            if (!field) return;
+            
+            const labelsDiv = field.querySelector('.rating-labels');
+            const hiddenMin = field.querySelector('input[id^="ratingMinLabel_"]');
+            const hiddenMax = field.querySelector('input[id^="ratingMaxLabel_"]');
+            
+            if (labelsDiv) {
+                labelsDiv.innerHTML = `
+                    <small class="text-muted">${minLabel || 'Poor'}</small>
+                    <small class="text-muted">${maxLabel || 'Excellent'}</small>
+                `;
+            }
+            if (hiddenMin) hiddenMin.value = minLabel || 'Poor';
+            if (hiddenMax) hiddenMax.value = maxLabel || 'Excellent';
+        }
+
+        // =============================================
+        // VOICE RECOGNITION
+        // =============================================
+        function startVoiceInput(inputId, btnElement) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('Voice not supported. Use Chrome, Edge, or Safari.');
+                return;
+            }
+            
+            let targetInput = document.getElementById(inputId);
+            if (!targetInput) {
+                targetInput = document.querySelector(`#propertyContent #${inputId}`);
+                if (!targetInput) {
+                    alert('Input field not found.');
+                    return;
+                }
+            }
+            
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            
+            recognition.onstart = function() {
+                btnElement.classList.add('listening');
+                btnElement.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
+                btnElement.disabled = true;
+            };
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                targetInput.value = transcript;
+                targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+                targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+                btnElement.classList.remove('listening');
+                btnElement.innerHTML = '<i class="fas fa-microphone"></i>';
+                btnElement.disabled = false;
+            };
+            
+            recognition.onerror = function(event) {
+                btnElement.classList.remove('listening');
+                btnElement.innerHTML = '<i class="fas fa-microphone"></i>';
+                btnElement.disabled = false;
+                if (event.error !== 'aborted' && event.error !== 'no-speech') {
+                    alert('Voice error: ' + event.error + '. Please try again.');
+                }
+            };
+            
+            recognition.onend = function() {
+                btnElement.classList.remove('listening');
+                btnElement.innerHTML = '<i class="fas fa-microphone"></i>';
+                btnElement.disabled = false;
+            };
+            
+            try {
+                recognition.start();
+            } catch (e) {
+                btnElement.classList.remove('listening');
+                btnElement.innerHTML = '<i class="fas fa-microphone"></i>';
+                btnElement.disabled = false;
+            }
+        }
+
+        // =============================================
+        // SAVE FORM
+        // =============================================
+        async function saveForm() {
+            const questions = [];
+            document.querySelectorAll('.question-card').forEach((card, idx) => {
+                const labelElement = card.querySelector('.form-label');
+                const label = labelElement ? labelElement.textContent : `Question ${idx + 1}`;
+                const type = card.dataset.type;
+                const fieldId = card.dataset.fieldId;
+                
+                let qData = { 
+                    id: idx, 
+                    text: label,
+                    type: type 
+                };
+                
+                // Save options for checkbox, radio, dropdown
+                if (type === 'checkbox' || type === 'radio' || type === 'dropdown') {
+                    qData.options = fieldOptions[fieldId] || ['Option 1', 'Option 2', 'Option 3'];
+                }
+                
+                if (type === 'rating') {
+                    const maxInput = card.querySelector('input[id^="ratingMax_"]');
+                    const minLabelInput = card.querySelector('input[id^="ratingMinLabel_"]');
+                    const maxLabelInput = card.querySelector('input[id^="ratingMaxLabel_"]');
+                    qData.max = maxInput ? parseInt(maxInput.value) : 5;
+                    qData.minLabel = minLabelInput ? minLabelInput.value : 'Poor';
+                    qData.maxLabel = maxLabelInput ? maxLabelInput.value : 'Excellent';
+                }
+                
+                if (type === 'image') {
+                    const imageData = document.getElementById('imageData_' + fieldId)?.value || '';
+                    const altDisplay = document.getElementById('altTextDisplay_' + fieldId);
+                    const altText = altDisplay ? altDisplay.textContent : label;
+                    qData.imageData = imageData;
+                    qData.altText = altText;
+                }
+                
+                questions.push(qData);
+            });
+            
+            const formTitle = document.getElementById('formTitleDisplay').textContent;
+            
+            try {
+                let url, method;
+                if (currentFormId) {
+                    url = `${API_URL}/forms/${currentFormId}`;
+                    method = 'PUT';
+                } else {
+                    url = `${API_URL}/forms`;
+                    method = 'POST';
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title: formTitle,
+                        description: '',
+                        questions: questions
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Form saved successfully!');
+                    window.location.href = 'dashboard-creator.html';
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // =============================================
+        // GO BACK
+        // =============================================
+        function goBack() {
+            window.location.href = 'dashboard-creator.html';
+        }
+
+        // =============================================
+        // ACCESSIBILITY
+        // =============================================
+        function toggleHighContrast() {
+            document.body.classList.toggle('high-contrast');
+            localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
+        }
+
+        function toggleDyslexiaMode() {
+            document.body.classList.toggle('dyslexia-mode');
+            localStorage.setItem('dyslexiaMode', document.body.classList.contains('dyslexia-mode'));
+        }
+
+        if (localStorage.getItem('highContrast') === 'true') document.body.classList.add('high-contrast');
+        if (localStorage.getItem('dyslexiaMode') === 'true') document.body.classList.add('dyslexia-mode');
+
+        // =============================================
+        // LOAD EXISTING FORM
+        // =============================================
+        async function loadExistingForm() {
+            if (!currentFormId) return;
+            try {
+                const res = await fetch(`${API_URL}/forms/${currentFormId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success && data.form) {
+                    if (data.form.status !== 'draft') {
+                        alert('⚠️ This form is ' + data.form.status + ' and cannot be edited. Only draft forms can be edited.');
+                        window.location.href = 'dashboard-creator.html';
+                        return;
+                    }
+                    
+                    document.getElementById('formTitleDisplay').textContent = data.form.title;
+                    if (data.form.questions && data.form.questions.length > 0) {
+                        const previewArea = document.getElementById('formPreviewArea');
+                        previewArea.innerHTML = '';
+                        document.getElementById('emptyMessage').style.display = 'none';
+                        data.form.questions.forEach(q => {
+                            // Pass options if they exist
+                            let options = q.options || ['Option 1', 'Option 2', 'Option 3'];
+                            addField(q.type, options);
+                            const lastField = previewArea.querySelector('.question-card:last-child');
+                            if (lastField) {
+                                const label = lastField.querySelector('.form-label');
+                                if (label) label.textContent = q.text || (q.type.charAt(0).toUpperCase() + q.type.slice(1) + ' Question');
+                                
+                                const fieldId = lastField.dataset.fieldId;
+                                
+                                if (q.type === 'checkbox' || q.type === 'radio' || q.type === 'dropdown') {
+                                    if (q.options) {
+                                        fieldOptions[fieldId] = q.options;
+                                        updateOptions(fieldId, q.options);
+                                    }
+                                }
+                                
+                                if (q.type === 'rating') {
+                                    const maxInput = lastField.querySelector('input[id^="ratingMax_"]');
+                                    const minInput = lastField.querySelector('input[id^="ratingMinLabel_"]');
+                                    const maxInputLabel = lastField.querySelector('input[id^="ratingMaxLabel_"]');
+                                    if (maxInput && q.max) maxInput.value = q.max;
+                                    if (minInput && q.minLabel) minInput.value = q.minLabel;
+                                    if (maxInputLabel && q.maxLabel) maxInputLabel.value = q.maxLabel;
+                                    updateRatingConfig(lastField.dataset.fieldId, q.max || 5);
+                                    updateRatingLabels(lastField.dataset.fieldId, q.minLabel || 'Poor', q.maxLabel || 'Excellent');
+                                }
+                                
+                                if (q.type === 'image' && q.imageData) {
+                                    displayImage(fieldId, q.imageData);
+                                    document.getElementById('imageData_' + fieldId).value = q.imageData;
+                                    if (q.altText) {
+                                        const altDisplay = document.getElementById('altTextDisplay_' + fieldId);
+                                        if (altDisplay) altDisplay.textContent = `"${q.altText}"`;
+                                    }
+                                }
+                            }
+                        });
+                        renumberQuestions();
+                    }
+                }
+            } catch (error) {
+                console.error('Load form error:', error);
+            }
+        }
+
+        // =============================================
+        // MAKE FUNCTIONS GLOBAL
+        // =============================================
+        window.addField = addField;
+        window.deleteField = deleteField;
+        window.selectField = selectField;
+        window.updateLabel = updateLabel;
+        window.updateAltText = updateAltText;
+        window.toggleRequired = toggleRequired;
+        window.startVoiceInput = startVoiceInput;
+        window.saveForm = saveForm;
+        window.goBack = goBack;
+        window.toggleHighContrast = toggleHighContrast;
+        window.toggleDyslexiaMode = toggleDyslexiaMode;
+        window.updateRatingConfig = updateRatingConfig;
+        window.updateRatingLabels = updateRatingLabels;
+        window.handleImageUpload = handleImageUpload;
+        window.openImageUrlDialog = openImageUrlDialog;
+        window.displayImage = displayImage;
+        window.removeImage = removeImage;
+        window.renumberQuestions = renumberQuestions;
+        window.updateOptions = updateOptions;
+        window.addOption = addOption;
+        window.removeOption = removeOption;
+        window.updateOptionText = updateOptionText;
+
+        // =============================================
+        // INIT
+        // =============================================
+        loadExistingForm();
+    </script>
+</body>
+</html>

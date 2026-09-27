@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Dashboard - AccessForm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *:focus { outline: 3px solid #ffd700 !important; outline-offset: 2px !important; }
+        .skip-link { position: absolute; top: -40px; left: 0; background: #000; color: white; padding: 8px; z-index: 100; text-decoration: none; }
+        .skip-link:focus { top: 0; }
+        
+        body { background: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .dashboard-wrapper { max-width: 1500px; margin: auto; padding: 20px; }
+        
+        /* Sidebar */
+        .sidebar {
+            background: #1a1a2e;
+            color: #fff;
+            border-radius: 16px;
+            padding: 20px 0;
+            min-height: 600px;
+            height: 100%;
+            position: sticky;
+            top: 20px;
+        }
+        .sidebar .brand {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 15px;
+        }
+        .sidebar .brand h3 { 
+            font-weight: 700; 
+            color: #fff;
+            font-size: 22px;
+        }
+        .sidebar .brand h3 i { color: #6c5ce7; margin-right: 10px; }
+        .sidebar .brand small { color: #a0aec0; font-size: 12px; display: block; margin-top: 4px; }
+        
+        .sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #a0aec0;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            margin: 2px 0;
+        }
+        .sidebar .nav-item:hover {
+            background: rgba(108, 92, 231, 0.1);
+            color: #fff;
+        }
+        .sidebar .nav-item.active {
+            background: rgba(108, 92, 231, 0.15);
+            color: #fff;
+            border-left-color: #6c5ce7;
+        }
+        .sidebar .nav-item i { width: 24px; margin-right: 12px; font-size: 16px; }
+        .sidebar .nav-item .badge { margin-left: auto; }
+        .sidebar .nav-item .badge.bg-success { background: #48bb78 !important; }
+        .sidebar .nav-item .badge.bg-danger { background: #fc8181 !important; }
+        .sidebar .nav-item .badge.bg-warning { background: #f6ad55 !important; color: #1a1a2e; }
+        .sidebar .nav-item .badge.bg-info { background: #63b3ed !important; }
+        
+        .sidebar .nav-divider {
+            border-top: 1px solid rgba(255,255,255,0.08);
+            margin: 10px 20px;
+        }
+        
+        .sidebar .user-profile {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            margin-top: 10px;
+        }
+        .sidebar .user-profile .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #6c5ce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: #fff;
+        }
+        .sidebar .user-profile .user-info { margin-left: 12px; }
+        .sidebar .user-profile .user-info strong { display: block; color: #fff; font-size: 14px; }
+        .sidebar .user-profile .user-info small { color: #a0aec0; font-size: 12px; }
+        
+        /* Main Content */
+        .main-content {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            min-height: 600px;
+            height: 100%;
+        }
+        .main-content .page-title {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .main-content .page-title i { color: #6c5ce7; margin-right: 10px; }
+        
+        /* Stats Cards */
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            border: 1px solid #e9ecef;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+        .stat-card .stat-icon { font-size: 28px; margin-bottom: 6px; display: block; }
+        .stat-card .stat-number { font-size: 30px; font-weight: 700; color: #2d3748; }
+        .stat-card .stat-label { color: #718096; font-size: 13px; font-weight: 500; }
+        .stat-card.purple .stat-icon { color: #6c5ce7; }
+        .stat-card.green .stat-icon { color: #48bb78; }
+        .stat-card.blue .stat-icon { color: #4299e1; }
+        .stat-card.orange .stat-icon { color: #ed8936; }
+        .stat-card.red .stat-icon { color: #fc8181; }
+        
+        /* Charts */
+        .chart-wrapper {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            margin: 10px 0;
+        }
+        .chart-wrapper h6 { font-weight: 600; color: #2d3748; margin-bottom: 15px; }
+        .chart-wrapper h6 i { margin-right: 8px; }
+        .chart-container { position: relative; height: 220px; }
+        
+        /* Survey Cards */
+        .survey-card { 
+            border: 1px solid #e9ecef; 
+            padding: 18px 20px; 
+            margin: 10px 0; 
+            border-radius: 12px; 
+            background: white;
+            transition: all 0.2s;
+        }
+        .survey-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.04); border-color: #6c5ce7; }
+        .survey-card h5 { font-weight: 600; color: #2d3748; }
+        .survey-card .text-muted { color: #718096; }
+        .survey-card .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-content { background: white; margin: 40px auto; padding: 30px; width: 700px; border-radius: 16px; max-height: 85%; overflow-y: auto; max-width: 95%; position: relative; }
+        .modal-content h3 { font-weight: 700; color: #2d3748; }
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            padding: 0 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .modal-close-btn:hover { color: #333; background: #f0f0f0; }
+        .modal-close-btn:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        
+        /* Accessibility Panel */
+        .accessibility-panel { 
+            background: #f8f9fa; 
+            padding: 12px 20px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            border: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .accessibility-panel .panel-label { font-weight: 600; color: #495057; font-size: 14px; }
+        .accessibility-panel .btn-group { display: flex; flex-wrap: wrap; gap: 5px; }
+        .accessibility-panel .btn-group .btn { border-radius: 20px; padding: 4px 14px; font-size: 13px; }
+        
+        /* Buttons */
+        .btn-primary { background: #6c5ce7; border: none; border-radius: 30px; padding: 8px 20px; font-weight: 500; }
+        .btn-primary:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); }
+        .btn-primary:disabled { background: #a0aec0; cursor: not-allowed; transform: none; }
+        .btn-primary:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .btn-success { background: #48bb78; border: none; border-radius: 30px; padding: 8px 20px; font-weight: 500; }
+        .btn-success:hover { background: #38a169; }
+        .btn-success:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .btn-danger { background: #fc8181; border: none; border-radius: 30px; padding: 8px 20px; font-weight: 500; color: white; }
+        .btn-danger:hover { background: #f56565; }
+        .btn-danger:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .btn-secondary { background: #a0aec0; border: none; border-radius: 30px; padding: 8px 20px; font-weight: 500; color: white; }
+        .btn-secondary:hover { background: #718096; }
+        .btn-secondary:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .btn-outline-info { background: transparent; border: 1px solid #63b3ed; color: #4299e1; border-radius: 30px; padding: 5px 14px; }
+        .btn-outline-info:hover { background: #63b3ed; color: white; }
+        .btn-outline-info:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .btn-sm { padding: 5px 14px; font-size: 12px; border: none; border-radius: 20px; cursor: pointer; transition: all 0.2s; }
+        .btn-sm:hover { transform: translateY(-1px); }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6c5ce7;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .form-control:focus-visible { outline: 3px solid #ffd700 !important; outline-offset: 2px !important; }
+        .form-select:focus-visible { outline: 3px solid #ffd700 !important; outline-offset: 2px !important; }
+        
+        .tab-pane { display: none; padding: 15px 0; }
+        .tab-pane.active { display: block; }
+        
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .badge-success { background: #48bb78; color: white; }
+        .badge-danger { background: #fc8181; color: white; }
+        .badge-secondary { background: #a0aec0; color: white; }
+        .badge-info { background: #63b3ed; color: white; }
+        .badge-warning { background: #f6ad55; color: #1a1a2e; }
+        
+        /* High Contrast */
+        .high-contrast { background-color: #000 !important; color: #fff !important; }
+        .high-contrast .main-content { background-color: #1a1a2e !important; color: #fff !important; }
+        .high-contrast .stat-card { background-color: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        .high-contrast .stat-card .stat-number { color: #fff !important; }
+        .high-contrast .stat-card .stat-label { color: #ccc !important; }
+        .high-contrast .chart-wrapper { background-color: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        .high-contrast .chart-wrapper h6 { color: #fff !important; }
+        .high-contrast .survey-card { background-color: #2d2d44 !important; color: #fff !important; border-color: #6c5ce7 !important; }
+        .high-contrast .modal-content { background-color: #1a1a2e !important; color: #fff !important; }
+        .high-contrast .accessibility-panel { background: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        .high-contrast .settings-card { background-color: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        .high-contrast .settings-card .form-control { background-color: #444 !important; color: #fff !important; border-color: #6c5ce7 !important; }
+        .high-contrast .settings-card .form-control:disabled { background-color: #333 !important; color: #aaa !important; }
+        .high-contrast .help-card { background-color: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        .high-contrast .profile-card { background-color: #2d2d44 !important; border-color: #6c5ce7 !important; color: #fff !important; }
+        
+        /* Dyslexia Mode */
+        .dyslexia-mode { font-family: 'Comic Sans MS', 'OpenDyslexic', Arial, sans-serif !important; line-height: 1.7; letter-spacing: 0.5px; }
+        
+        /* Settings Card */
+        .settings-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        .settings-card h6 { font-weight: 600; color: #2d3748; margin-bottom: 15px; }
+        .settings-card h6 i { margin-right: 10px; color: #6c5ce7; }
+        .settings-card .form-control { border-radius: 8px; border: 1px solid #e9ecef; padding: 10px 14px; font-size: 14px; }
+        .settings-card .form-control:focus { border-color: #6c5ce7; box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1); }
+        
+        .profile-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #e9ecef;
+        }
+        .profile-card .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #6c5ce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 auto 15px;
+        }
+        
+        .help-card {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .help-card:hover { border-color: #6c5ce7; transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .help-card:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .help-card i { font-size: 32px; color: #6c5ce7; margin-bottom: 10px; }
+        .help-card h6 { font-weight: 600; color: #2d3748; }
+        .help-card p { font-size: 13px; color: #718096; }
+        
+        .notification-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 6px 0;
+            background: #f8f9fa;
+            border-left: 3px solid #6c5ce7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notification-item.unread { background: #f0f0ff; border-left-color: #6c5ce7; }
+        .notification-item .noti-text { font-size: 14px; }
+        .notification-item .noti-time { font-size: 12px; color: #a0aec0; }
+        .notification-item .noti-badge { background: #6c5ce7; color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+        
+        .response-item { 
+            border-left: 3px solid #6c5ce7; 
+            padding: 12px 16px; 
+            margin: 8px 0; 
+            background: #f8f9fa; 
+            border-radius: 8px; 
+        }
+        
+        .distribute-card {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s;
+            background: white;
+        }
+        .distribute-card:hover { border-color: #6c5ce7; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+        .distribute-card i { font-size: 40px; color: #6c5ce7; margin-bottom: 10px; }
+        .distribute-card .btn { margin-top: 10px; }
+        
+        /* Screen Reader Announcement */
+        .sr-announce {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            border: 0;
+        }
+        
+        /* Focus management for tab panels */
+        .tab-pane:focus {
+            outline: none;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { min-height: auto; border-radius: 12px; margin-bottom: 15px; position: static; }
+            .main-content { padding: 15px; }
+            .stat-card .stat-number { font-size: 24px; }
+            .modal-content { width: 95%; margin: 20px auto; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<div class="dashboard-wrapper">
+    <div class="row g-3">
+        <!-- ============================================= -->
+        <!-- SIDEBAR -->
+        <!-- ============================================= -->
+        <div class="col-md-3 col-lg-2" role="navigation" aria-label="Main navigation">
+            <div class="sidebar">
+                <div class="brand">
+                    <h3><i class="fas fa-pen-fancy" aria-hidden="true"></i>AccessForm</h3>
+                    <small>Creator Dashboard</small>
+                </div>
+                
+                <nav aria-label="Creator navigation">
+                    <div class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard" role="button" tabindex="0" aria-label="Dashboard" aria-current="page" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('dashboard')">
+                        <i class="fas fa-home" aria-hidden="true"></i> Dashboard
+                    </div>
+                    <div class="nav-item" onclick="showPage('forms')" data-page="forms" role="button" tabindex="0" aria-label="My Forms" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('forms')">
+                        <i class="fas fa-file-alt" aria-hidden="true"></i> My Forms
+                        <span class="badge bg-info" id="formCountBadge">0</span>
+                    </div>
+                    <div class="nav-item" onclick="openCreateForm()" data-page="create" role="button" tabindex="0" aria-label="Create Form" onkeydown="if(event.key==='Enter'||event.key===' ')openCreateForm()">
+                        <i class="fas fa-plus-circle" aria-hidden="true"></i> Create Form
+                    </div>
+                    <div class="nav-divider"></div>
+                    <div class="nav-item" onclick="showPage('responses')" data-page="responses" role="button" tabindex="0" aria-label="Responses" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('responses')">
+                        <i class="fas fa-chart-bar" aria-hidden="true"></i> Responses
+                        <span class="badge bg-success" id="responseCountBadge">0</span>
+                    </div>
+                    <div class="nav-item" onclick="showPage('analytics')" data-page="analytics" role="button" tabindex="0" aria-label="Analytics" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('analytics')">
+                        <i class="fas fa-chart-pie" aria-hidden="true"></i> Analytics
+                    </div>
+                    <div class="nav-divider"></div>
+                    <div class="nav-item" onclick="showPage('accessibility')" data-page="accessibility" role="button" tabindex="0" aria-label="Accessibility" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('accessibility')">
+                        <i class="fas fa-universal-access" aria-hidden="true"></i> Accessibility
+                    </div>
+                    <div class="nav-item" onclick="showPage('distribute')" data-page="distribute" role="button" tabindex="0" aria-label="Distribute Forms" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('distribute')">
+                        <i class="fas fa-share-alt" aria-hidden="true"></i> Distribute Forms
+                    </div>
+                    <div class="nav-divider"></div>
+                    <div class="nav-item" onclick="showPage('reports')" data-page="reports" role="button" tabindex="0" aria-label="Reports and Export" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('reports')">
+                        <i class="fas fa-file-export" aria-hidden="true"></i> Reports & Export
+                    </div>
+                    <div class="nav-item" onclick="showPage('notifications')" data-page="notifications" role="button" tabindex="0" aria-label="Notifications" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('notifications')">
+                        <i class="fas fa-bell" aria-hidden="true"></i> Notifications
+                        <span class="badge bg-danger">3</span>
+                    </div>
+                    <div class="nav-divider"></div>
+                    <div class="nav-item" onclick="showPage('profile')" data-page="profile" role="button" tabindex="0" aria-label="Profile" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('profile')">
+                        <i class="fas fa-user-circle" aria-hidden="true"></i> Profile
+                    </div>
+                    <div class="nav-item" onclick="showPage('help')" data-page="help" role="button" tabindex="0" aria-label="Help and Support" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('help')">
+                        <i class="fas fa-question-circle" aria-hidden="true"></i> Help & Support
+                    </div>
+                    <div class="nav-divider"></div>
+                    <div class="nav-item" onclick="logout()" style="color: #fc8181;" role="button" tabindex="0" aria-label="Logout" onkeydown="if(event.key==='Enter'||event.key===' ')logout()">
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Logout
+                    </div>
+                </nav>
+                
+                <div class="user-profile">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar" id="userAvatar" aria-hidden="true">C</div>
+                        <div class="user-info">
+                            <strong id="userNameDisplay">Creator</strong>
+                            <small>Form Creator</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ============================================= -->
+        <!-- MAIN CONTENT -->
+        <!-- ============================================= -->
+        <div class="col-md-9 col-lg-10">
+            <div class="main-content" id="main-content" role="main">
+                <!-- Accessibility Panel -->
+                <div class="accessibility-panel" role="region" aria-label="Accessibility options">
+                    <span class="panel-label"><i class="fas fa-universal-access me-2" aria-hidden="true"></i>Accessibility:</span>
+                    <div class="btn-group">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="toggleHighContrast()" aria-label="Toggle high contrast mode">
+                            <i class="fas fa-adjust me-1" aria-hidden="true"></i> High Contrast
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="toggleDyslexiaMode()" aria-label="Toggle dyslexia-friendly font">
+                            <i class="fas fa-font me-1" aria-hidden="true"></i> Dyslexia Font
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="increaseFontSize()" aria-label="Increase font size">
+                            <i class="fas fa-plus-circle me-1" aria-hidden="true"></i> A+
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="decreaseFontSize()" aria-label="Decrease font size">
+                            <i class="fas fa-minus-circle me-1" aria-hidden="true"></i> A-
+                        </button>
+                    </div>
+                    <div id="accessibilityMessage" class="ms-auto text-muted small" aria-live="polite"></div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: DASHBOARD -->
+                <!-- ============================================= -->
+                <div id="page-dashboard" class="tab-pane active" role="tabpanel" aria-label="Dashboard" tabindex="-1">
+                    <h4 class="page-title" id="dashboard-heading"><i class="fas fa-home" aria-hidden="true"></i>Dashboard</h4>
+                    
+                    <!-- Stats -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card purple" role="article" aria-label="Total forms statistics">
+                                <span class="stat-icon"><i class="fas fa-file-alt" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="statTotalForms">0</div>
+                                <div class="stat-label">Total Forms</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card green" role="article" aria-label="Active forms statistics">
+                                <span class="stat-icon"><i class="fas fa-play-circle" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="statActiveForms">0</div>
+                                <div class="stat-label">Active Forms</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card blue" role="article" aria-label="Total responses statistics">
+                                <span class="stat-icon"><i class="fas fa-poll" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="statTotalResponses">0</div>
+                                <div class="stat-label">Total Responses</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-card orange" role="article" aria-label="Completion rate statistics">
+                                <span class="stat-icon"><i class="fas fa-percentage" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="statCompletionRate">0%</div>
+                                <div class="stat-label">Completion Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="chart-wrapper" role="figure" aria-label="Form status distribution pie chart">
+                                <h6><i class="fas fa-chart-pie" style="color: #6c5ce7;" aria-hidden="true"></i>Form Status Distribution</h6>
+                                <div class="chart-container"><canvas id="statusChart" aria-label="Pie chart showing draft, active and closed forms"></canvas></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-wrapper" role="figure" aria-label="Responses per form bar chart">
+                                <h6><i class="fas fa-chart-bar" style="color: #6c5ce7;" aria-hidden="true"></i>Responses per Form</h6>
+                                <div class="chart-container"><canvas id="responsesChart" aria-label="Bar chart showing responses per form"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: MY FORMS -->
+                <!-- ============================================= -->
+                <div id="page-forms" class="tab-pane" role="tabpanel" aria-label="My forms" tabindex="-1">
+                    <h4 class="page-title" id="forms-heading"><i class="fas fa-file-alt" aria-hidden="true"></i>My Forms</h4>
+                    <div class="mb-3 d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary" onclick="openCreateForm()" aria-label="Create new form">
+                            <i class="fas fa-plus me-2" aria-hidden="true"></i> Create New Form
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="refreshForms()" aria-label="Refresh forms">
+                            <i class="fas fa-sync-alt me-2" aria-hidden="true"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="formsList"><div class="spinner" role="status" aria-label="Loading forms"></div></div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: RESPONSES -->
+                <!-- ============================================= -->
+                <div id="page-responses" class="tab-pane" role="tabpanel" aria-label="Responses" tabindex="-1">
+                    <h4 class="page-title" id="responses-heading"><i class="fas fa-chart-bar" aria-hidden="true"></i>Responses</h4>
+                    <div id="allResponsesList"><div class="spinner" role="status" aria-label="Loading responses"></div></div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: ANALYTICS -->
+                <!-- ============================================= -->
+                <div id="page-analytics" class="tab-pane" role="tabpanel" aria-label="Analytics" tabindex="-1">
+                    <h4 class="page-title" id="analytics-heading"><i class="fas fa-chart-pie" aria-hidden="true"></i>Analytics</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="chart-wrapper">
+                                <h6><i class="fas fa-chart-pie" style="color: #6c5ce7;" aria-hidden="true"></i>Form Status</h6>
+                                <div class="chart-container"><canvas id="analyticsStatusChart"></canvas></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-wrapper">
+                                <h6><i class="fas fa-chart-line" style="color: #6c5ce7;" aria-hidden="true"></i>Response Trends</h6>
+                                <div class="chart-container"><canvas id="analyticsTrendChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <div class="stat-card purple">
+                                <span class="stat-icon"><i class="fas fa-file-alt" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="analyticsForms">0</div>
+                                <div class="stat-label">Total Forms</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card green">
+                                <span class="stat-icon"><i class="fas fa-play-circle" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="analyticsActive">0</div>
+                                <div class="stat-label">Active</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card blue">
+                                <span class="stat-icon"><i class="fas fa-poll" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="analyticsResponses">0</div>
+                                <div class="stat-label">Total Responses</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card orange">
+                                <span class="stat-icon"><i class="fas fa-users" aria-hidden="true"></i></span>
+                                <div class="stat-number" id="analyticsRespondents">0</div>
+                                <div class="stat-label">Unique Respondents</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: ACCESSIBILITY -->
+                <!-- ============================================= -->
+                <div id="page-accessibility" class="tab-pane" role="tabpanel" aria-label="Accessibility settings" tabindex="-1">
+                    <h4 class="page-title" id="accessibility-heading"><i class="fas fa-universal-access" aria-hidden="true"></i>Accessibility Settings</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="settings-card p-4">
+                                <h6><i class="fas fa-adjust me-2" aria-hidden="true"></i>High Contrast</h6>
+                                <p class="text-muted">Toggle high contrast mode for better visibility.</p>
+                                <button class="btn btn-primary" onclick="toggleHighContrast()" aria-label="Toggle high contrast mode"><i class="fas fa-adjust me-2" aria-hidden="true"></i> Toggle High Contrast</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="settings-card p-4">
+                                <h6><i class="fas fa-font me-2" aria-hidden="true"></i>Dyslexia Font</h6>
+                                <p class="text-muted">Enable dyslexia-friendly font for easier reading.</p>
+                                <button class="btn btn-primary" onclick="toggleDyslexiaMode()" aria-label="Toggle dyslexia font"><i class="fas fa-font me-2" aria-hidden="true"></i> Toggle Dyslexia Font</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="settings-card p-4">
+                                <h6><i class="fas fa-text-height me-2" aria-hidden="true"></i>Font Size</h6>
+                                <p class="text-muted">Adjust text size for better readability.</p>
+                                <div class="d-flex gap-3">
+                                    <button class="btn btn-outline-secondary" onclick="decreaseFontSize()" aria-label="Decrease font size"><i class="fas fa-minus" aria-hidden="true"></i> Decrease</button>
+                                    <button class="btn btn-outline-secondary" onclick="increaseFontSize()" aria-label="Increase font size"><i class="fas fa-plus" aria-hidden="true"></i> Increase</button>
+                                    <button class="btn btn-outline-secondary" onclick="resetFontSize()" aria-label="Reset font size"><i class="fas fa-undo" aria-hidden="true"></i> Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="settings-card p-4">
+                                <h6><i class="fas fa-check-circle me-2" aria-hidden="true"></i>WCAG Score</h6>
+                                <p class="text-muted">Your dashboard meets WCAG 2.1 AA standards.</p>
+                                <div class="progress" style="height: 25px;" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-success" style="width: 100%; font-weight: 600;">100%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: DISTRIBUTE FORMS -->
+                <!-- ============================================= -->
+                <div id="page-distribute" class="tab-pane" role="tabpanel" aria-label="Distribute forms" tabindex="-1">
+                    <h4 class="page-title" id="distribute-heading"><i class="fas fa-share-alt" aria-hidden="true"></i>Distribute Forms</h4>
+                    <p class="text-muted">Share your forms with respondents using different methods.</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="distribute-card">
+                                <i class="fas fa-link" aria-hidden="true"></i>
+                                <h6>Share Link</h6>
+                                <p class="text-muted">Copy the form link and share it with respondents.</p>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="shareLinkInput" placeholder="Select a form first" readonly>
+                                    <button class="btn btn-primary" onclick="copyShareLink()" aria-label="Copy share link"><i class="fas fa-copy" aria-hidden="true"></i> Copy</button>
+                                </div>
+                                <select class="form-select mt-2" id="shareFormSelect" onchange="updateShareLink()" aria-label="Select form to share">
+                                    <option value="">-- Select a form --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="distribute-card">
+                                <i class="fas fa-qrcode" aria-hidden="true"></i>
+                                <h6>QR Code</h6>
+                                <p class="text-muted">Generate a QR code for your form.</p>
+                                <div id="qrCodeContainer" class="mt-2">
+                                    <p class="text-muted">Select a form to generate QR code.</p>
+                                </div>
+                                <button class="btn btn-primary mt-2" onclick="generateQR()" aria-label="Generate QR code"><i class="fas fa-qrcode me-2" aria-hidden="true"></i> Generate QR Code</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="distribute-card">
+                                <i class="fas fa-envelope" aria-hidden="true"></i>
+                                <h6>Email Invite</h6>
+                                <p class="text-muted">Send form invites via email.</p>
+                                <div class="input-group mt-2">
+                                    <input type="email" class="form-control" id="emailInviteInput" placeholder="Enter email address" aria-label="Email address">
+                                    <button class="btn btn-primary" onclick="sendEmailInvite()" aria-label="Send email invite"><i class="fas fa-paper-plane" aria-hidden="true"></i> Send</button>
+                                </div>
+                                <select class="form-select mt-2" id="emailFormSelect" aria-label="Select form for email">
+                                    <option value="">-- Select a form --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="distribute-card">
+                                <i class="fas fa-code" aria-hidden="true"></i>
+                                <h6>Embed Code</h6>
+                                <p class="text-muted">Get embed code to add your form to a website.</p>
+                                <div class="mt-2">
+                                    <textarea class="form-control" id="embedCodeInput" rows="2" readonly placeholder="Select a form first" aria-label="Embed code"></textarea>
+                                    <button class="btn btn-primary mt-2" onclick="copyEmbedCode()" aria-label="Copy embed code"><i class="fas fa-copy me-2" aria-hidden="true"></i> Copy Code</button>
+                                </div>
+                                <select class="form-select mt-2" id="embedFormSelect" onchange="updateEmbedCode()" aria-label="Select form for embed">
+                                    <option value="">-- Select a form --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: REPORTS & EXPORT -->
+                <!-- ============================================= -->
+                <div id="page-reports" class="tab-pane" role="tabpanel" aria-label="Reports and export" tabindex="-1">
+                    <h4 class="page-title" id="reports-heading"><i class="fas fa-file-export" aria-hidden="true"></i>Reports & Export</h4>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="settings-card p-4 text-center">
+                                <i class="fas fa-file-csv fa-3x text-success mb-3" aria-hidden="true"></i>
+                                <h6>Export as CSV</h6>
+                                <p class="text-muted small">Download all responses as CSV</p>
+                                <button class="btn btn-success" onclick="exportData('csv')" aria-label="Export CSV"><i class="fas fa-download me-2" aria-hidden="true"></i> Export CSV</button>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="settings-card p-4 text-center">
+                                <i class="fas fa-file-excel fa-3x text-info mb-3" aria-hidden="true"></i>
+                                <h6>Export as Excel</h6>
+                                <p class="text-muted small">Download all responses as Excel</p>
+                                <button class="btn btn-info" onclick="exportData('excel')" aria-label="Export Excel"><i class="fas fa-download me-2" aria-hidden="true"></i> Export Excel</button>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="settings-card p-4 text-center">
+                                <i class="fas fa-file-pdf fa-3x text-danger mb-3" aria-hidden="true"></i>
+                                <h6>Export as PDF</h6>
+                                <p class="text-muted small">Download all responses as PDF</p>
+                                <button class="btn btn-danger" onclick="exportData('pdf')" aria-label="Export PDF"><i class="fas fa-download me-2" aria-hidden="true"></i> Export PDF</button>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="settings-card p-4">
+                                <h6><i class="fas fa-chart-bar me-2" aria-hidden="true"></i>Generate Report</h6>
+                                <p class="text-muted">Generate a detailed report of your form responses.</p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <select class="form-select" id="reportFormSelect" aria-label="Select form for report">
+                                            <option value="">-- Select a form --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button class="btn btn-primary" onclick="generateReport()" aria-label="Generate report"><i class="fas fa-file-alt me-2" aria-hidden="true"></i> Generate Report</button>
+                                    </div>
+                                </div>
+                                <div id="reportResult" class="mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: NOTIFICATIONS -->
+                <!-- ============================================= -->
+                <div id="page-notifications" class="tab-pane" role="tabpanel" aria-label="Notifications" tabindex="-1">
+                    <h4 class="page-title" id="notifications-heading"><i class="fas fa-bell" aria-hidden="true"></i>Notifications</h4>
+                    <div id="notificationsList">
+                        <div class="notification-item unread">
+                            <div>
+                                <div class="noti-text"><strong>📝 New response</strong> - "Customer Survey" received 5 new responses</div>
+                                <div class="noti-time">10 minutes ago</div>
+                            </div>
+                            <span class="noti-badge">New</span>
+                        </div>
+                        <div class="notification-item unread">
+                            <div>
+                                <div class="noti-text"><strong>✅ Form activated</strong> - "Feedback Form" is now active</div>
+                                <div class="noti-time">1 hour ago</div>
+                            </div>
+                            <span class="noti-badge">New</span>
+                        </div>
+                        <div class="notification-item unread">
+                            <div>
+                                <div class="noti-text"><strong>📊 Weekly Report</strong> - Your forms received 25 responses this week</div>
+                                <div class="noti-time">3 hours ago</div>
+                            </div>
+                            <span class="noti-badge">New</span>
+                        </div>
+                        <div class="notification-item">
+                            <div>
+                                <div class="noti-text"><strong>✅ Form closed</strong> - "Event Registration" has been closed</div>
+                                <div class="noti-time">1 day ago</div>
+                            </div>
+                            <span class="badge bg-secondary">Read</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: PROFILE -->
+                <!-- ============================================= -->
+                <div id="page-profile" class="tab-pane" role="tabpanel" aria-label="Profile" tabindex="-1">
+                    <h4 class="page-title" id="profile-heading"><i class="fas fa-user-circle" aria-hidden="true"></i>My Profile</h4>
+                    <div class="profile-card">
+                        <div class="profile-avatar" id="profileAvatar" aria-hidden="true">C</div>
+                        <h5 id="profileName">Creator</h5>
+                        <p class="text-muted" id="profileEmail">creator@example.com</p>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" for="profileFullName">Full Name</label>
+                                    <input type="text" class="form-control" id="profileFullName" placeholder="Enter your full name" aria-label="Full name">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" for="profileEmailInput">Email</label>
+                                    <input type="email" class="form-control" id="profileEmailInput" placeholder="Enter your email" aria-label="Email address">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" for="profilePhone">Phone Number</label>
+                                    <input type="tel" class="form-control" id="profilePhone" placeholder="Enter phone number" aria-label="Phone number">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" for="profileRole">Role</label>
+                                    <input type="text" class="form-control" id="profileRole" value="Creator" disabled aria-label="Role">
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="updateProfile()" aria-label="Update profile"><i class="fas fa-save me-2" aria-hidden="true"></i> Update Profile</button>
+                        <div id="profileMessage" class="mt-3" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- PAGE: HELP & SUPPORT -->
+                <!-- ============================================= -->
+                <div id="page-help" class="tab-pane" role="tabpanel" aria-label="Help and support" tabindex="-1">
+                    <h4 class="page-title" id="help-heading"><i class="fas fa-question-circle" aria-hidden="true"></i>Help & Support</h4>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('faq')" role="button" tabindex="0" aria-label="FAQ" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('faq')">
+                                <i class="fas fa-question-circle" aria-hidden="true"></i>
+                                <h6>FAQ</h6>
+                                <p>Frequently asked questions</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('guide')" role="button" tabindex="0" aria-label="User Guide" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('guide')">
+                                <i class="fas fa-book" aria-hidden="true"></i>
+                                <h6>User Guide</h6>
+                                <p>How to use the dashboard</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('contact')" role="button" tabindex="0" aria-label="Contact Support" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('contact')">
+                                <i class="fas fa-envelope" aria-hidden="true"></i>
+                                <h6>Contact Support</h6>
+                                <p>Get help from our team</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('accessibility')" role="button" tabindex="0" aria-label="Accessibility Help" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('accessibility')">
+                                <i class="fas fa-universal-access" aria-hidden="true"></i>
+                                <h6>Accessibility Help</h6>
+                                <p>Accessibility features guide</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('report')" role="button" tabindex="0" aria-label="Report Issue" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('report')">
+                                <i class="fas fa-flag" aria-hidden="true"></i>
+                                <h6>Report Issue</h6>
+                                <p>Report a problem or bug</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="help-card" onclick="showHelp('feedback')" role="button" tabindex="0" aria-label="Give Feedback" onkeydown="if(event.key==='Enter'||event.key===' ')showHelp('feedback')">
+                                <i class="fas fa-comment" aria-hidden="true"></i>
+                                <h6>Give Feedback</h6>
+                                <p>Share your suggestions</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="helpContent" class="mt-4 p-4 border rounded" role="region" aria-label="Help content">
+                        <p class="text-muted text-center">Select a help topic above to get started.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================= -->
+<!-- CREATE FORM MODAL -->
+<!-- ============================================= -->
+<div id="createFormModal" class="modal" role="dialog" aria-labelledby="createFormTitle" aria-modal="true">
+    <div class="modal-content">
+        <button class="modal-close-btn" onclick="closeCreateForm()" aria-label="Close create form dialog">✕</button>
+        <h3 id="createFormTitle"><i class="fas fa-plus-circle me-2" aria-hidden="true"></i>Create New Form</h3>
+        <p class="text-muted">Fill in the details to create a new form.</p>
+        <form id="createForm" onsubmit="createForm(event)">
+            <div class="mb-3">
+                <label class="form-label fw-bold" for="newFormTitle">Form Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="newFormTitle" placeholder="e.g., Customer Satisfaction Survey" required aria-label="Form title">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold" for="newFormDescription">Description</label>
+                <textarea class="form-control" id="newFormDescription" rows="3" placeholder="Describe what this survey is about..." aria-label="Form description"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold" for="newFormStatus">Initial Status</label>
+                <select class="form-select" id="newFormStatus" aria-label="Form status">
+                    <option value="draft">Draft</option>
+                    <option value="active">Active</option>
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" aria-label="Create form"><i class="fas fa-plus me-2" aria-hidden="true"></i> Create Form</button>
+                <button type="button" class="btn btn-secondary" onclick="closeCreateForm()" aria-label="Cancel">Cancel</button>
+            </div>
+        </form>
+        <div id="createFormMessage" class="mt-3" aria-live="polite"></div>
+    </div>
+</div>
+
+<!-- ============================================= -->
+<!-- VIEW RESPONSES MODAL -->
+<!-- ============================================= -->
+<div id="viewResponsesModal" class="modal" role="dialog" aria-labelledby="viewResponsesTitle" aria-modal="true">
+    <div class="modal-content">
+        <button class="modal-close-btn" onclick="document.getElementById('viewResponsesModal').style.display='none'" aria-label="Close responses">✕</button>
+        <h3 id="viewResponsesTitle"><i class="fas fa-chart-bar me-2" aria-hidden="true"></i>Form Responses</h3>
+        <h5 id="responseFormTitle" class="text-muted"></h5>
+        <div id="responsesListContainer"></div>
+        <button class="btn btn-secondary mt-3" onclick="document.getElementById('viewResponsesModal').style.display='none'" aria-label="Close">Close</button>
+    </div>
+</div>
+
+<!-- ============================================= -->
+<!-- SCREEN READER ANNOUNCEMENT -->
+<!-- ============================================= -->
+<div id="srAnnounce" class="sr-announce" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+const API_URL = 'http://localhost:5000/api';
+const token = localStorage.getItem('token');
+const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+if (!token || user.role !== 'creator') {
+    window.location.href = 'index.html';
+}
+
+let allForms = [];
+let allResponses = [];
+let chartInstances = {};
+let currentPage = 'dashboard';
+
+// =============================================
+// SCREEN READER ANNOUNCEMENT
+// =============================================
+function announceToScreenReader(message) {
+    const announcer = document.getElementById('srAnnounce');
+    if (announcer) {
+        announcer.textContent = '';
+        setTimeout(() => {
+            announcer.textContent = message;
+        }, 50);
+    }
+}
+
+// =============================================
+// USER INIT
+// =============================================
+document.getElementById('userNameDisplay').textContent = user.full_name || 'Creator';
+document.getElementById('userAvatar').textContent = (user.full_name || 'C').charAt(0).toUpperCase();
+document.getElementById('profileAvatar').textContent = (user.full_name || 'C').charAt(0).toUpperCase();
+document.getElementById('profileName').textContent = user.full_name || 'Creator';
+document.getElementById('profileEmail').textContent = user.email || 'creator@example.com';
+document.getElementById('profileFullName').value = user.full_name || '';
+document.getElementById('profileEmailInput').value = user.email || '';
+document.getElementById('profilePhone').value = user.phone_number || '';
+
+// =============================================
+// ACCESSIBILITY FUNCTIONS
+// =============================================
+function toggleHighContrast() {
+    document.body.classList.toggle('high-contrast');
+    localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
+    const msg = 'High contrast ' + (document.body.classList.contains('high-contrast') ? 'enabled' : 'disabled');
+    showAccessibilityMsg(msg);
+    announceToScreenReader(msg);
+}
+
+function toggleDyslexiaMode() {
+    document.body.classList.toggle('dyslexia-mode');
+    localStorage.setItem('dyslexiaMode', document.body.classList.contains('dyslexia-mode'));
+    const msg = 'Dyslexia font ' + (document.body.classList.contains('dyslexia-mode') ? 'enabled' : 'disabled');
+    showAccessibilityMsg(msg);
+    announceToScreenReader(msg);
+}
+
+function increaseFontSize() {
+    let size = parseFloat(getComputedStyle(document.body).fontSize) || 16;
+    if (size < 32) {
+        document.body.style.fontSize = (size + 2) + 'px';
+        localStorage.setItem('fontSize', document.body.style.fontSize);
+        const msg = 'Font size increased to ' + document.body.style.fontSize;
+        showAccessibilityMsg(msg);
+        announceToScreenReader(msg);
+    }
+}
+
+function decreaseFontSize() {
+    let size = parseFloat(getComputedStyle(document.body).fontSize) || 16;
+    if (size > 12) {
+        document.body.style.fontSize = (size - 2) + 'px';
+        localStorage.setItem('fontSize', document.body.style.fontSize);
+        const msg = 'Font size decreased to ' + document.body.style.fontSize;
+        showAccessibilityMsg(msg);
+        announceToScreenReader(msg);
+    }
+}
+
+function resetFontSize() {
+    document.body.style.fontSize = '16px';
+    localStorage.removeItem('fontSize');
+    const msg = 'Font size reset to default';
+    showAccessibilityMsg(msg);
+    announceToScreenReader(msg);
+}
+
+function showAccessibilityMsg(msg) {
+    const el = document.getElementById('accessibilityMessage');
+    el.textContent = msg;
+    el.style.opacity = 1;
+    clearTimeout(el._timeout);
+    el._timeout = setTimeout(() => { el.style.opacity = 0; }, 3000);
+}
+
+if (localStorage.getItem('highContrast') === 'true') document.body.classList.add('high-contrast');
+if (localStorage.getItem('dyslexiaMode') === 'true') document.body.classList.add('dyslexia-mode');
+if (localStorage.getItem('fontSize')) document.body.style.fontSize = localStorage.getItem('fontSize');
+
+// =============================================
+// PAGE NAVIGATION - WITH SCREEN READER ANNOUNCEMENT
+// =============================================
+function showPage(pageName) {
+    // Hide all tab panels
+    document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    
+    // Show selected tab panel
+    const page = document.getElementById('page-' + pageName);
+    if (page) {
+        page.classList.add('active');
+        // Focus on the panel for screen readers
+        page.focus();
+    }
+    
+    // Update nav
+    const nav = document.querySelector(`.nav-item[data-page="${pageName}"]`);
+    if (nav) nav.classList.add('active');
+    
+    // Store current page
+    currentPage = pageName;
+    
+    // Announce to screen reader
+    const pageNames = {
+        'dashboard': 'Dashboard',
+        'forms': 'My Forms',
+        'responses': 'Responses',
+        'analytics': 'Analytics',
+        'accessibility': 'Accessibility Settings',
+        'distribute': 'Distribute Forms',
+        'reports': 'Reports and Export',
+        'notifications': 'Notifications',
+        'profile': 'Profile',
+        'help': 'Help and Support'
+    };
+    const pageTitle = pageNames[pageName] || pageName;
+    announceToScreenReader('Navigated to ' + pageTitle);
+    
+    // Load data on demand
+    if (pageName === 'forms') loadForms();
+    if (pageName === 'responses') loadAllResponses();
+    if (pageName === 'analytics') loadAnalytics();
+    if (pageName === 'distribute') loadDistributeForms();
+    if (pageName === 'reports') loadReportForms();
+    
+    document.getElementById('main-content').focus();
+}
+
+// =============================================
+// LOAD FORMS
+// =============================================
+async function loadForms() {
+    try {
+        const res = await fetch(`${API_URL}/forms`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            allForms = data.forms || [];
+            document.getElementById('formCountBadge').textContent = allForms.length;
+            
+            let totalResponses = 0;
+            let activeCount = 0;
+            let draftCount = 0;
+            let closedCount = 0;
+            
+            allForms.forEach(form => {
+                if (form.status === 'active') activeCount++;
+                else if (form.status === 'draft') draftCount++;
+                else if (form.status === 'closed') closedCount++;
+                form.response_count = 0;
+            });
+            
+            document.getElementById('statTotalForms').textContent = allForms.length;
+            document.getElementById('statActiveForms').textContent = activeCount;
+            
+            const container = document.getElementById('formsList');
+            if (allForms.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-file-alt fa-4x text-muted mb-3" aria-hidden="true"></i>
+                        <h5>No forms yet</h5>
+                        <p class="text-muted">Click "Create New Form" to get started.</p>
+                        <button class="btn btn-primary" onclick="openCreateForm()" aria-label="Create your first form">
+                            <i class="fas fa-plus me-2" aria-hidden="true"></i> Create Your First Form
+                        </button>
+                    </div>
+                `;
+                updateCharts(draftCount, activeCount, closedCount, [], []);
+                return;
+            }
+            
+            for (let form of allForms) {
+                try {
+                    const respRes = await fetch(`${API_URL}/responses/form/${form._id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const respData = await respRes.json();
+                    if (respData.success) {
+                        form.response_count = respData.count || 0;
+                        totalResponses += form.response_count;
+                    }
+                } catch (e) {
+                    form.response_count = 0;
+                }
+            }
+            
+            document.getElementById('statTotalResponses').textContent = totalResponses;
+            document.getElementById('responseCountBadge').textContent = totalResponses;
+            
+            const rate = allForms.length > 0 ? Math.round((activeCount / allForms.length) * 100) : 0;
+            document.getElementById('statCompletionRate').textContent = rate + '%';
+            
+            container.innerHTML = allForms.map(form => `
+                <div class="survey-card">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap">
+                        <div>
+                            <h5><i class="fas fa-file-alt me-2" aria-hidden="true"></i>${escapeHtml(form.title)}</h5>
+                            <p class="text-muted small">${escapeHtml(form.description) || 'No description'}</p>
+                            <div class="mt-1">
+                                <span class="badge ${form.status === 'active' ? 'badge-success' : form.status === 'closed' ? 'badge-danger' : 'badge-secondary'}">${form.status || 'draft'}</span>
+                                <span class="badge bg-light text-dark ms-1">📋 ${form.questions?.length || 0} questions</span>
+                                <span class="badge bg-light text-dark ms-1">📊 ${form.response_count || 0} responses</span>
+                                <span class="badge bg-light text-dark ms-1">📅 ${new Date(form.created_at).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 mt-sm-0 d-flex gap-1 flex-wrap">
+                            ${form.status === 'draft' ? 
+                                `<button class="btn btn-primary btn-sm" onclick="activateForm('${form._id}')" aria-label="Activate form ${escapeHtml(form.title)}"><i class="fas fa-play me-1" aria-hidden="true"></i> Activate</button>
+                                 <button class="btn btn-outline-primary btn-sm" onclick="editForm('${form._id}')" aria-label="Edit form ${escapeHtml(form.title)}"><i class="fas fa-edit me-1" aria-hidden="true"></i> Edit</button>` : 
+                                form.status === 'active' ?
+                                `<button class="btn btn-warning btn-sm" onclick="closeForm('${form._id}')" aria-label="Close form ${escapeHtml(form.title)}"><i class="fas fa-lock me-1" aria-hidden="true"></i> Close</button>` :
+                                `<span class="badge bg-secondary">🔒 Closed</span>`
+                            }
+                            <button class="btn btn-outline-info btn-sm" onclick="viewFormResponses('${form._id}', '${escapeHtml(form.title)}')" aria-label="View responses for ${escapeHtml(form.title)}">
+                                <i class="fas fa-chart-bar me-1" aria-hidden="true"></i> Responses
+                            </button>
+                            <button class="btn btn-outline-success btn-sm" onclick="shareForm('${form._id}')" aria-label="Share form ${escapeHtml(form.title)}">
+                                <i class="fas fa-share-alt me-1" aria-hidden="true"></i> Share
+                            </button>
+                            ${form.status === 'draft' ? 
+                                `<button class="btn btn-danger btn-sm" onclick="deleteForm('${form._id}')" aria-label="Delete form ${escapeHtml(form.title)}"><i class="fas fa-trash me-1" aria-hidden="true"></i></button>` : ''
+                            }
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            updateCharts(draftCount, activeCount, closedCount, 
+                allForms.map(f => f.title.length > 15 ? f.title.substring(0, 15) + '...' : f.title),
+                allForms.map(f => f.response_count || 0)
+            );
+        }
+    } catch (error) {
+        console.error('Load forms error:', error);
+        document.getElementById('formsList').innerHTML = '<p class="text-danger">Error loading forms: ' + error.message + '</p>';
+    }
+}
+
+function refreshForms() {
+    loadForms();
+    const msg = 'Forms refreshed';
+    showAccessibilityMsg(msg);
+    announceToScreenReader(msg);
+}
+
+// =============================================
+// UPDATE CHARTS
+// =============================================
+function updateCharts(draft, active, closed, formNames, formResponses) {
+    Object.keys(chartInstances).forEach(key => {
+        if (chartInstances[key]) {
+            chartInstances[key].destroy();
+        }
+    });
+    
+    const ctx1 = document.getElementById('statusChart').getContext('2d');
+    chartInstances.status = new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+            labels: ['Draft', 'Active', 'Closed'],
+            datasets: [{
+                data: [draft, active, closed],
+                backgroundColor: ['#a0aec0', '#48bb78', '#fc8181'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true } }
+            },
+            cutout: '65%'
+        }
+    });
+    
+    if (formNames && formNames.length > 0) {
+        const ctx2 = document.getElementById('responsesChart').getContext('2d');
+        chartInstances.responses = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: formNames,
+                datasets: [{
+                    label: 'Responses',
+                    data: formResponses,
+                    backgroundColor: formResponses.map(v => 
+                        v > 10 ? '#48bb78' : v > 5 ? '#f6ad55' : '#6c5ce7'
+                    ),
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                    x: { ticks: { maxRotation: 45, minRotation: 30 } }
+                }
+            }
+        });
+    }
+}
+
+// =============================================
+// FORM ACTIONS
+// =============================================
+function openCreateForm() {
+    document.getElementById('createFormModal').style.display = 'block';
+    document.getElementById('newFormTitle').focus();
+    announceToScreenReader('Create new form dialog opened');
+}
+
+function closeCreateForm() {
+    document.getElementById('createFormModal').style.display = 'none';
+    document.getElementById('newFormTitle').value = '';
+    document.getElementById('newFormDescription').value = '';
+    document.getElementById('createFormMessage').innerHTML = '';
+    announceToScreenReader('Create form dialog closed');
+}
+
+async function createForm(event) {
+    event.preventDefault();
+    const title = document.getElementById('newFormTitle').value;
+    const description = document.getElementById('newFormDescription').value;
+    const status = document.getElementById('newFormStatus').value;
+    
+    if (!title) {
+        document.getElementById('createFormMessage').innerHTML = '<div class="alert alert-warning">Please enter a form title.</div>';
+        announceToScreenReader('Please enter a form title');
+        return;
+    }
+    
+    try {
+        const res = await fetch(`${API_URL}/forms`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ title, description, status })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('createFormMessage').innerHTML = '<div class="alert alert-success">✅ Form created successfully!</div>';
+            announceToScreenReader('Form ' + title + ' created successfully');
+            setTimeout(() => {
+                closeCreateForm();
+                loadForms();
+            }, 1000);
+        } else {
+            document.getElementById('createFormMessage').innerHTML = '<div class="alert alert-danger">❌ Error: ' + data.message + '</div>';
+        }
+    } catch (error) {
+        document.getElementById('createFormMessage').innerHTML = '<div class="alert alert-danger">❌ Error: ' + error.message + '</div>';
+    }
+}
+
+async function activateForm(formId) {
+    if (!confirm('⚠️ Activate this form? Once activated, it cannot be edited.')) return;
+    try {
+        const res = await fetch(`${API_URL}/forms/${formId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status: 'active' })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('✅ Form activated!');
+            announceToScreenReader('Form activated successfully');
+            loadForms();
+        } else {
+            alert('❌ Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+async function closeForm(formId) {
+    if (!confirm('⚠️ Close this form? Respondents will no longer be able to submit.')) return;
+    try {
+        const res = await fetch(`${API_URL}/admin/forms/close/${formId}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('✅ Form closed!');
+            announceToScreenReader('Form closed successfully');
+            loadForms();
+        } else {
+            alert('❌ Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+function editForm(formId) {
+    window.location.href = `form-editor.html?id=${formId}`;
+}
+
+function shareForm(formId) {
+    const link = `${window.location.origin}/form-preview.html?id=${formId}`;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(link).then(() => {
+            alert('✅ Link copied to clipboard!');
+            announceToScreenReader('Share link copied to clipboard');
+        }).catch(() => {
+            prompt('Copy this link to share:', link);
+        });
+    } else {
+        prompt('Copy this link to share:', link);
+    }
+}
+
+async function deleteForm(formId) {
+    if (!confirm('Delete this form permanently?')) return;
+    try {
+        const res = await fetch(`${API_URL}/forms/${formId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('Form deleted');
+            announceToScreenReader('Form deleted successfully');
+            loadForms();
+        } else {
+            alert('❌ Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+// =============================================
+// RESPONSES
+// =============================================
+async function loadAllResponses() {
+    try {
+        await loadForms();
+        const container = document.getElementById('allResponsesList');
+        let allResp = [];
+        
+        for (let form of allForms) {
+            try {
+                const res = await fetch(`${API_URL}/responses/form/${form._id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success && data.responses) {
+                    data.responses.forEach(r => {
+                        allResp.push({
+                            ...r,
+                            formTitle: form.title
+                        });
+                    });
+                }
+            } catch (e) {}
+        }
+        
+        allResponses = allResp;
+        
+        if (allResp.length === 0) {
+            container.innerHTML = '<p class="text-muted">No responses yet.</p>';
+            return;
+        }
+        
+        container.innerHTML = allResp.map(r => `
+            <div class="response-item">
+                <p><strong>📋 Form:</strong> ${escapeHtml(r.formTitle || 'Unknown')}</p>
+                <p><strong>👤 Respondent:</strong> ${escapeHtml(r.respondent_name || 'Anonymous')}</p>
+                <p><strong>📅 Submitted:</strong> ${new Date(r.submitted_at).toLocaleString()}</p>
+                <p><strong>📱 Method:</strong> ${escapeHtml(r.submission_method || 'web')}</p>
+                <p><strong>📝 Answers:</strong> ${r.answers?.length || 0}</p>
+                ${r.phone_number ? `<p><strong>📞 Phone:</strong> ${escapeHtml(r.phone_number)}</p>` : ''}
+                <hr>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Load responses error:', error);
+    }
+}
+
+async function viewFormResponses(formId, formTitle) {
+    document.getElementById('responseFormTitle').textContent = formTitle;
+    document.getElementById('responsesListContainer').innerHTML = '<div class="spinner"></div>';
+    document.getElementById('viewResponsesModal').style.display = 'block';
+    announceToScreenReader('Viewing responses for ' + formTitle);
+    
+    try {
+        const res = await fetch(`${API_URL}/responses/form/${formId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success && data.responses && data.responses.length > 0) {
+            document.getElementById('responsesListContainer').innerHTML = data.responses.map(r => `
+                <div class="response-item">
+                    <p><strong>👤 Respondent:</strong> ${escapeHtml(r.respondent_name || 'Anonymous')}</p>
+                    <p><strong>📅 Submitted:</strong> ${new Date(r.submitted_at).toLocaleString()}</p>
+                    <p><strong>📱 Method:</strong> ${escapeHtml(r.submission_method || 'web')}</p>
+                    <p><strong>📝 Answers:</strong></p>
+                    <ul>${r.answers.map(a => `<li>${escapeHtml(a.questionId || 'Q')}: ${escapeHtml(a.answer || 'N/A')}</li>`).join('')}</ul>
+                    ${r.phone_number ? `<p><strong>📞 Phone:</strong> ${escapeHtml(r.phone_number)}</p>` : ''}
+                    <hr>
+                </div>
+            `).join('');
+        } else {
+            document.getElementById('responsesListContainer').innerHTML = '<p class="text-muted">No responses yet.</p>';
+        }
+    } catch (error) {
+        document.getElementById('responsesListContainer').innerHTML = '<p class="text-danger">Error loading responses.</p>';
+    }
+}
+
+// =============================================
+// ANALYTICS
+// =============================================
+async function loadAnalytics() {
+    await loadForms();
+    
+    document.getElementById('analyticsForms').textContent = allForms.length;
+    document.getElementById('analyticsActive').textContent = allForms.filter(f => f.status === 'active').length;
+    document.getElementById('analyticsResponses').textContent = allResponses.length;
+    document.getElementById('analyticsRespondents').textContent = new Set(allResponses.map(r => r.respondent_id || r.respondent_name)).size;
+    
+    const statuses = { draft: 0, active: 0, closed: 0 };
+    allForms.forEach(f => { if (statuses[f.status] !== undefined) statuses[f.status]++; });
+    
+    const ctx1 = document.getElementById('analyticsStatusChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'pie',
+        data: {
+            labels: ['Draft', 'Active', 'Closed'],
+            datasets: [{
+                data: [statuses.draft, statuses.active, statuses.closed],
+                backgroundColor: ['#a0aec0', '#48bb78', '#fc8181'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true } } }
+        }
+    });
+    
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const data = Array(12).fill(0);
+    allResponses.forEach(r => {
+        const month = new Date(r.submitted_at).getMonth();
+        data[month] += 1;
+    });
+    
+    const ctx2 = document.getElementById('analyticsTrendChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Responses',
+                data: data,
+                backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                borderColor: '#6c5ce7',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+}
+
+// =============================================
+// DISTRIBUTE FORMS
+// =============================================
+function loadDistributeForms() {
+    const selects = ['shareFormSelect', 'emailFormSelect', 'embedFormSelect'];
+    selects.forEach(id => {
+        const select = document.getElementById(id);
+        if (select) {
+            select.innerHTML = '<option value="">-- Select a form --</option>' + 
+                allForms.map(f => `<option value="${f._id}">${escapeHtml(f.title)}</option>`).join('');
+        }
+    });
+}
+
+function updateShareLink() {
+    const select = document.getElementById('shareFormSelect');
+    const input = document.getElementById('shareLinkInput');
+    if (select.value) {
+        input.value = `${window.location.origin}/form-preview.html?id=${select.value}`;
+        announceToScreenReader('Share link generated for ' + select.options[select.selectedIndex]?.text);
+    } else {
+        input.value = '';
+    }
+}
+
+function copyShareLink() {
+    const input = document.getElementById('shareLinkInput');
+    if (input.value) {
+        navigator.clipboard.writeText(input.value).then(() => {
+            alert('✅ Link copied!');
+            announceToScreenReader('Share link copied to clipboard');
+        }).catch(() => {
+            input.select();
+            document.execCommand('copy');
+            alert('✅ Link copied!');
+            announceToScreenReader('Share link copied to clipboard');
+        });
+    } else {
+        alert('Please select a form first.');
+        announceToScreenReader('Please select a form first');
+    }
+}
+
+function generateQR() {
+    const select = document.getElementById('shareFormSelect');
+    if (!select.value) {
+        alert('Please select a form first.');
+        announceToScreenReader('Please select a form first');
+        return;
+    }
+    const container = document.getElementById('qrCodeContainer');
+    const link = `${window.location.origin}/form-preview.html?id=${select.value}`;
+    container.innerHTML = `
+        <div class="p-3 bg-white">
+            <div style="border: 2px dashed #6c5ce7; padding: 20px; border-radius: 8px;">
+                <p><i class="fas fa-qrcode fa-4x" style="color: #6c5ce7;" aria-hidden="true"></i></p>
+                <p class="text-muted">QR Code for: <strong>${select.options[select.selectedIndex]?.text}</strong></p>
+                <p><small class="text-muted">Link: ${link}</small></p>
+                <button class="btn btn-sm btn-primary" onclick="alert('QR Code downloaded!')">📥 Download QR</button>
+            </div>
+        </div>
+    `;
+    announceToScreenReader('QR Code generated for ' + select.options[select.selectedIndex]?.text);
+}
+
+function sendEmailInvite() {
+    const email = document.getElementById('emailInviteInput').value;
+    const form = document.getElementById('emailFormSelect').value;
+    if (!email) { alert('Please enter an email address.'); return; }
+    if (!form) { alert('Please select a form.'); return; }
+    alert(`✅ Invite sent to ${email}!`);
+    announceToScreenReader('Invite sent to ' + email);
+    document.getElementById('emailInviteInput').value = '';
+}
+
+function updateEmbedCode() {
+    const select = document.getElementById('embedFormSelect');
+    const textarea = document.getElementById('embedCodeInput');
+    if (select.value) {
+        textarea.value = `<iframe src="${window.location.origin}/form-preview.html?id=${select.value}" width="100%" height="600" frameborder="0" title="Form"></iframe>`;
+        announceToScreenReader('Embed code generated for ' + select.options[select.selectedIndex]?.text);
+    } else {
+        textarea.value = '';
+    }
+}
+
+function copyEmbedCode() {
+    const textarea = document.getElementById('embedCodeInput');
+    if (textarea.value) {
+        navigator.clipboard.writeText(textarea.value).then(() => {
+            alert('✅ Embed code copied!');
+            announceToScreenReader('Embed code copied to clipboard');
+        }).catch(() => {
+            textarea.select();
+            document.execCommand('copy');
+            alert('✅ Embed code copied!');
+            announceToScreenReader('Embed code copied to clipboard');
+        });
+    } else {
+        alert('Please select a form first.');
+        announceToScreenReader('Please select a form first');
+    }
+}
+
+// =============================================
+// REPORTS & EXPORT
+// =============================================
+function loadReportForms() {
+    const select = document.getElementById('reportFormSelect');
+    select.innerHTML = '<option value="">-- Select a form --</option>' + 
+        allForms.map(f => `<option value="${f._id}">${escapeHtml(f.title)}</option>`).join('');
+}
+
+function generateReport() {
+    const select = document.getElementById('reportFormSelect');
+    if (!select.value) {
+        alert('Please select a form.');
+        announceToScreenReader('Please select a form');
+        return;
+    }
+    const form = allForms.find(f => f._id === select.value);
+    const responses = allResponses.filter(r => r.form_id === select.value || r.formTitle === form?.title);
+    document.getElementById('reportResult').innerHTML = `
+        <div class="alert alert-success">
+            <h6>📊 Report Generated</h6>
+            <p><strong>Form:</strong> ${form?.title || 'Unknown'}</p>
+            <p><strong>Total Responses:</strong> ${responses.length}</p>
+            <p><strong>Questions:</strong> ${form?.questions?.length || 0}</p>
+            <p><strong>Created:</strong> ${form?.created_at ? new Date(form.created_at).toLocaleDateString() : 'N/A'}</p>
+            <button class="btn btn-primary btn-sm" onclick="exportData('pdf')"><i class="fas fa-download me-2" aria-hidden="true"></i> Download Report</button>
+        </div>
+    `;
+    announceToScreenReader('Report generated for ' + form?.title);
+}
+
+function exportData(type) {
+    const data = allResponses.length > 0 ? allResponses : allForms;
+    if (!data || data.length === 0) {
+        alert('No data to export.');
+        announceToScreenReader('No data to export');
+        return;
+    }
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `export_${type}_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert(`✅ ${type.toUpperCase()} exported successfully!`);
+    announceToScreenReader(type.toUpperCase() + ' exported successfully');
+}
+
+// =============================================
+// HELP & SUPPORT
+// =============================================
+function showHelp(topic) {
+    const container = document.getElementById('helpContent');
+    const helpData = {
+        faq: {
+            title: 'Frequently Asked Questions',
+            content: `
+                <h6>How do I create a form?</h6>
+                <p>Click "Create Form" in the sidebar, fill in the details, and click "Create Form".</p>
+                <h6>How do I activate a form?</h6>
+                <p>On the "My Forms" page, click the "Activate" button on a draft form.</p>
+                <h6>How do I share a form?</h6>
+                <p>Use the "Distribute Forms" page to get a share link, QR code, or embed code.</p>
+                <h6>Can I edit an active form?</h6>
+                <p>No, you cannot edit an active form. You need to close it first and create a new version.</p>
+            `
+        },
+        guide: {
+            title: 'User Guide',
+            content: `
+                <h6>Getting Started</h6>
+                <p>1. Create your first form from the dashboard</p>
+                <p>2. Add questions and customize your form</p>
+                <p>3. Activate the form to make it available</p>
+                <p>4. Share the form with respondents</p>
+                <p>5. View responses and analytics</p>
+                <h6>Best Practices</h6>
+                <p>• Test your form before activating</p>
+                <p>• Use clear, accessible language</p>
+                <p>• Add alt text to images</p>
+                <p>• Keep forms short and focused</p>
+            `
+        },
+        contact: {
+            title: 'Contact Support',
+            content: `
+                <h6>Reach out to us</h6>
+                <p><strong>Email:</strong> support@accessform.com</p>
+                <p><strong>Phone:</strong> +92 300 1234567</p>
+                <p><strong>Hours:</strong> Mon-Fri, 9:00 AM - 6:00 PM</p>
+                <button class="btn btn-primary mt-2" onclick="alert('Opening support email...')">📧 Send Email</button>
+            `
+        },
+        accessibility: {
+            title: 'Accessibility Help',
+            content: `
+                <h6>Accessibility Features</h6>
+                <p><strong>High Contrast:</strong> Toggle in the Accessibility panel</p>
+                <p><strong>Dyslexia Font:</strong> Toggle in the Accessibility panel</p>
+                <p><strong>Font Size:</strong> Use A+ and A- buttons</p>
+                <p><strong>Keyboard Navigation:</strong> Use Tab key to navigate</p>
+                <p>✅ WCAG 2.1 AA Compliant</p>
+                <p>✅ Screen Reader Compatible</p>
+                <p>✅ Keyboard Accessible</p>
+            `
+        },
+        report: {
+            title: 'Report an Issue',
+            content: `
+                <h6>Report a Problem</h6>
+                <div class="mb-3">
+                    <label class="form-label">Issue Type</label>
+                    <select class="form-select">
+                        <option>Bug/Error</option>
+                        <option>Feature Request</option>
+                        <option>Accessibility Issue</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" rows="3" placeholder="Describe the issue..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="alert('✅ Issue reported!')">📤 Submit Report</button>
+            `
+        },
+        feedback: {
+            title: 'Give Feedback',
+            content: `
+                <h6>Share Your Thoughts</h6>
+                <div class="mb-3">
+                    <label class="form-label">How would you rate your experience?</label>
+                    <div class="d-flex gap-3">
+                        ${[1,2,3,4,5].map(i => `
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="feedbackRating" value="${i}" id="feedback_${i}">
+                                <label class="form-check-label" for="feedback_${i}">${i}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Your Feedback</label>
+                    <textarea class="form-control" rows="3" placeholder="Tell us what you think..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="alert('✅ Thank you for your feedback!')">📤 Submit Feedback</button>
+            `
+        }
+    };
+    
+    const data = helpData[topic];
+    if (data) {
+        container.innerHTML = `<h5>${data.title}</h5><div class="mt-3">${data.content}</div>`;
+        container.scrollIntoView({ behavior: 'smooth' });
+        announceToScreenReader('Help topic: ' + data.title);
+    }
+}
+
+// =============================================
+// PROFILE
+// =============================================
+function updateProfile() {
+    const fullName = document.getElementById('profileFullName').value;
+    const email = document.getElementById('profileEmailInput').value;
+    const phone = document.getElementById('profilePhone').value;
+    
+    if (!fullName || !email) {
+        document.getElementById('profileMessage').innerHTML = '<div class="alert alert-warning">Name and email are required.</div>';
+        announceToScreenReader('Name and email are required');
+        return;
+    }
+    
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    userData.full_name = fullName;
+    userData.email = email;
+    userData.phone_number = phone;
+    localStorage.setItem('user', JSON.stringify(userData));
+    
+    document.getElementById('userNameDisplay').textContent = fullName;
+    document.getElementById('userAvatar').textContent = fullName.charAt(0).toUpperCase();
+    document.getElementById('profileAvatar').textContent = fullName.charAt(0).toUpperCase();
+    document.getElementById('profileName').textContent = fullName;
+    document.getElementById('profileEmail').textContent = email;
+    
+    document.getElementById('profileMessage').innerHTML = '<div class="alert alert-success">✅ Profile updated successfully!</div>';
+    announceToScreenReader('Profile updated successfully');
+    setTimeout(() => {
+        document.getElementById('profileMessage').innerHTML = '';
+    }, 3000);
+}
+
+// =============================================
+// HELPERS
+// =============================================
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.toString().replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = 'index.html';
+}
+
+// =============================================
+// KEYBOARD NAVIGATION
+// =============================================
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        if (document.getElementById('createFormModal').style.display === 'block') {
+            closeCreateForm();
+        }
+        if (document.getElementById('viewResponsesModal').style.display === 'block') {
+            document.getElementById('viewResponsesModal').style.display = 'none';
+        }
+    }
+});
+
+// =============================================
+// INIT
+// =============================================
+loadForms();
+</script>
+</body>
+</html>
